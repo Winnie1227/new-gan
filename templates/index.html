@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数据可视化</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="/static/js/dashboard-charts.js?v=1.1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        $(function () {
+            $('.myscroll').myScroll({
+                speed: 60,
+                rowHeight: 38
+            });
+        });
+
+        $(document).ready(function () {
+            var whei = $(window).width()
+            $("html").css({ fontSize: whei / 22 });
+            $(window).resize(function () {
+                var whei = $(window).width();
+                $("html").css({ fontSize: whei / 22 })
+            });
+        });
+    </script>
+    <style>
+        .tab-panels {
+            margin-top: 0.3rem;
+            padding: 0.2rem;
+        }
+
+        .tab-panel {
+            display: none;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 0.2rem;
+            padding: 0.2rem;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .title {
+            color: #00c2ff;
+            font-size: 0.22rem;
+            margin-bottom: 0.2rem;
+            text-align: center;
+        }
+
+        .upload-compare-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.2rem; /* 调整为三分之一高度 */
+        }
+
+        .upload-box, .download-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+    height: 100%; /* 或者指定一个固定高度 */
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 0.3rem;
+    padding: 1rem;
+    color: #fff;
+    font-size: 0.18rem;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+}
+        .upload-button {
+            margin-top: 1rem;
+            padding: 0.2rem 0.5rem;
+            background: linear-gradient(to right, #01cfff, #0066ff);
+            border: none;
+            border-radius: 0.2rem;
+            color: white;
+            font-size: 0.18rem;
+            cursor: pointer;
+        }
+
+        .profile-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+            color: white;
+        }
+
+        .profile-box {
+            background: rgba(0, 102, 255, 0.1);
+            border: 2px solid #00c2ff;
+            border-radius: 10px;
+            padding: 0.8rem;
+            text-align: center;
+            font-size: 0.2rem;
+            color: #fff;
+            box-shadow: 0 0 10px #00c2ff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main">
+    <div class="header">
+        <div class="header-left fl" id="time"></div>
+        <div class="header-center fl">
+            <div class="header-title">
+                文化遗产图像智能修复系统
+            </div>
+            <div class="header-img"></div>
+        </div>
+        <div class="header-right fl"></div>
+        <div class="header-bottom fl"></div>
+    </div>
+
+    <div class="tab-panels">
+        <!-- 图像修复页面 -->
+        <div class="tab-panel" id="panel-1">
+    <div class="tech-title">
+    <div class="tech-title-inner">
+        <span class="tech-title-text">图像修复中心</span>
+        <div class="tech-title-decoration"></div>
+    </div>
+</div>
+    <div class="upload-container">
+        <!-- 单图上传区域 -->
+        <div class="upload-section">
+            <div class="sci-fi-corner top-left"></div>
+            <div class="sci-fi-corner top-right"></div>
+            <div class="sci-fi-corner bottom-left"></div>
+            <div class="sci-fi-corner bottom-right"></div>
+            <h3><i class="fas fa-image"></i> 单图修复</h3>
+            <div class="upload-area" id="singleUploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">
+                    <p>拖放图像文件到此处或</p>
+                    <button class="upload-button">选择文件</button>
+                    <input type="file" id="singleImageUpload" accept="image/*" style="display:none;">
+                </div>
+                <div class="upload-preview" id="singlePreview"></div>
+            </div>
+            <div class="upload-status" id="singleStatus"></div>
+        </div>
+        
+        <!-- 批量上传区域 -->
+        <div class="upload-section">
+            <h3><i class="fas fa-images"></i> 批量修复</h3>
+            <div class="upload-area" id="batchUploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div class="upload-text">
+                    <p>拖放ZIP文件或多张图像或</p>
+                    <button class="upload-button">选择文件</button>
+                    <input type="file" id="batchFileUpload" accept=".zip,image/*" style="display:none;" multiple>
+                </div>
+                <div class="file-list" id="batchFileList"></div>
+            </div>
+            <div class="upload-status" id="batchStatus"></div>
+            <div class="progress-container" id="batchProgress">
+                <div class="progress-bar"></div>
+                <div class="progress-text">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修复结果展示区 -->
+    <div class="result-container" id="resultContainer">
+    <h3><i class="fas fa-tasks"></i> 修复结果</h3>
+    <div class="result-actions">
+        <button class="action-button" id="downloadAll"><i class="fas fa-download"></i> 全部下载</button>
+        <button class="action-button" id="clearResults"><i class="fas fa-trash-alt"></i> 清空结果</button>
+    </div>
+    <div class="result-grid" id="resultGrid">
+    <!-- 动态添加的结果项会出现在这里 -->
+</div>
+</div>
+</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化时间显示
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // 单图上传相关元素
+    const singleUploadArea = document.getElementById('singleUploadArea');
+    const singleImageUpload = document.getElementById('singleImageUpload');
+    const singleUploadButton = singleUploadArea.querySelector('.upload-button');
+    const singlePreview = document.getElementById('singlePreview');
+    const singleStatus = document.getElementById('singleStatus');
+
+    // 批量上传相关元素
+    const batchUploadArea = document.getElementById('batchUploadArea');
+    const batchFileUpload = document.getElementById('batchFileUpload');
+    const batchUploadButton = batchUploadArea.querySelector('.upload-button');
+    const batchFileList = document.getElementById('batchFileList');
+    const batchStatus = document.getElementById('batchStatus');
+    const batchProgress = document.getElementById('batchProgress');
+
+    // 结果区域相关元素
+    const resultGrid = document.getElementById('resultGrid');
+    const downloadAllBtn = document.getElementById('downloadAll');
+    const clearResultsBtn = document.getElementById('clearResults');
+
+    // 单图上传事件绑定
+    singleUploadButton.addEventListener('click', () => {
+        singleImageUpload.click();
+    });
+
+    singleImageUpload.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleSingleUpload(e.target.files[0]);
+        }
+    });
+
+    // 拖放功能 - 单图上传
+    singleUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        singleUploadArea.style.borderColor = '#4fc3f7';
+        singleUploadArea.style.backgroundColor = 'rgba(79, 195, 247, 0.1)';
+    });
+
+    singleUploadArea.addEventListener('dragleave', () => {
+        singleUploadArea.style.borderColor = '#475569';
+        singleUploadArea.style.backgroundColor = 'transparent';
+    });
+
+    singleUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        singleUploadArea.style.borderColor = '#475569';
+        singleUploadArea.style.backgroundColor = 'transparent';
+
+        if (e.dataTransfer.files.length > 0) {
+            handleSingleUpload(e.dataTransfer.files[0]);
+        }
+    });
+
+    // 批量上传事件绑定
+    batchUploadButton.addEventListener('click', () => {
+        batchFileUpload.click();
+    });
+
+    batchFileUpload.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleBatchUpload(e.target.files);
+        }
+    });
+
+    // 拖放功能 - 批量上传
+    batchUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        batchUploadArea.style.borderColor = '#4fc3f7';
+        batchUploadArea.style.backgroundColor = 'rgba(79, 195, 247, 0.1)';
+    });
+
+    batchUploadArea.addEventListener('dragleave', () => {
+        batchUploadArea.style.borderColor = '#475569';
+        batchUploadArea.style.backgroundColor = 'transparent';
+    });
+
+    batchUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        batchUploadArea.style.borderColor = '#475569';
+        batchUploadArea.style.backgroundColor = 'transparent';
+
+        if (e.dataTransfer.files.length > 0) {
+            handleBatchUpload(e.dataTransfer.files);
+        }
+    });
+
+    // 结果区域按钮事件
+    downloadAllBtn.addEventListener('click', downloadAllResults);
+    clearResultsBtn.addEventListener('click', clearAllResults);
+});
+
+// 更新时间显示
+function updateTime() {
+    const now = new Date();
+    const timeElement = document.getElementById('time');
+    timeElement.textContent = now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+// 显示状态信息
+function showStatus(element, message, type) {
+    element.textContent = message;
+    element.className = 'upload-status';
+    element.classList.add('status-' + type);
+    element.style.display = 'block';
+}
+
+// 处理单图上传和修复
+function handleSingleUpload(file) {
+    if (!file.type.match('image.*')) {
+        showStatus(document.getElementById('singleStatus'), '请上传有效的图像文件', 'error');
+        return;
+    }
+
+    const singlePreview = document.getElementById('singlePreview');
+    const singleStatus = document.getElementById('singleStatus');
+
+    // 显示原始图片预览
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        singlePreview.innerHTML = `<img src="${e.target.result}" alt="原始图像预览">`;
+        singlePreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+    showStatus(singleStatus, '正在上传并修复图像...', 'info');
+
+    // 创建FormData并添加文件
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // 调用后端API进行图像修复
+    fetch('http://localhost:8000/repair-image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('修复过程失败');
+        return response.blob();
+    })
+    .then(blob => {
+        const imageUrl = URL.createObjectURL(blob);
+        // 更新预览为修复后的图片
+        singlePreview.innerHTML = `<img src="${imageUrl}" alt="修复后图像">`;
+        showStatus(singleStatus, '图像修复完成', 'success');
+        // 添加到结果列表
+        addResultItem(imageUrl, file.name);
+    })
+    .catch(error => {
+        showStatus(singleStatus, '修复失败: ' + error.message, 'error');
+    });
+}
+
+// 处理批量上传和修复
+function handleBatchUpload(files) {
+    const batchFileList = document.getElementById('batchFileList');
+    const batchStatus = document.getElementById('batchStatus');
+    const batchProgress = document.getElementById('batchProgress');
+
+    // 清空之前的列表
+    batchFileList.innerHTML = '';
+    batchProgress.style.display = 'block';
+    showStatus(batchStatus, '正在处理文件...', 'info');
+
+    // 过滤出图像文件
+    const imageFiles = Array.from(files).filter(file => file.type.match('image.*'));
+
+    if (imageFiles.length === 0) {
+        showStatus(batchStatus, '请选择有效的图像文件', 'error');
+        batchProgress.style.display = 'none';
+        return;
+    }
+
+    // 显示选中的文件列表
+    imageFiles.forEach(file => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+            <span>${file.name}</span>
+            <span class="file-status"><i class="fas fa-spinner fa-spin"></i></span>
+        `;
+        batchFileList.appendChild(fileItem);
+    });
+
+    // 逐个处理文件
+    imageFiles.forEach((file, index) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('http://localhost:8000/repair-image', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('修复失败');
+            return response.blob();
+        })
+        .then(blob => {
+            const imageUrl = URL.createObjectURL(blob);
+            // 更新文件状态为成功
+            const fileItems = batchFileList.querySelectorAll('.file-item');
+            fileItems[index].querySelector('.file-status').innerHTML =
+                '<i class="fas fa-check" style="color: #10b981;"></i>';
+            // 添加到结果列表
+            addResultItem(imageUrl, file.name);
+            // 更新进度
+            updateBatchProgress(index + 1, imageFiles.length);
+        })
+        .catch(error => {
+            // 更新文件状态为失败
+            const fileItems = batchFileList.querySelectorAll('.file-item');
+            fileItems[index].querySelector('.file-status').innerHTML =
+                `<i class="fas fa-times" style="color: #ef4444;"></i>`;
+            updateBatchProgress(index + 1, imageFiles.length);
+        });
+    });
+}
+
+// 更新批量处理进度
+function updateBatchProgress(completed, total) {
+    const progress = Math.round((completed / total) * 100);
+    document.querySelector('.progress-bar').style.width = `${progress}%`;
+    document.querySelector('.progress-text').textContent = `${progress}%`;
+
+    if (completed === total) {
+        showStatus(document.getElementById('batchStatus'), '所有文件处理完成', 'success');
+    }
+}
+
+// 添加结果项到展示区
+function addResultItem(imageUrl, fileName) {
+    const resultGrid = document.getElementById('resultGrid');
+
+    const resultItem = document.createElement('div');
+    resultItem.className = 'result-item';
+    resultItem.innerHTML = `
+        <div class="result-image">
+            <img src="${imageUrl}" alt="修复结果: ${fileName}">
+        </div>
+        <div class="result-info">
+            <span class="result-name">${fileName}</span>
+            <span class="result-download" onclick="downloadImage('${imageUrl}', '${fileName}')">
+                <i class="fas fa-download"></i>
+            </span>
+        </div>
+    `;
+
+    resultGrid.appendChild(resultItem);
+}
+
+// 下载单个图像
+function downloadImage(imageUrl, fileName) {
+    const link = document.createElement('a');
+    // 生成修复后的文件名
+    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+    const extension = fileName.substring(fileName.lastIndexOf('.')) || '.png';
+    link.download = `${baseName}_restored${extension}`;
+    link.href = imageUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// 下载所有结果
+function downloadAllResults() {
+    const resultItems = document.querySelectorAll('.result-item');
+    if (resultItems.length === 0) {
+        alert('没有可下载的修复结果');
+        return;
+    }
+
+    resultItems.forEach((item, index) => {
+        const imageUrl = item.querySelector('img').src;
+        const fileName = item.querySelector('.result-name').textContent;
+        // 延迟下载避免浏览器限制
+        setTimeout(() => {
+            downloadImage(imageUrl, fileName);
+        }, index * 300);
+    });
+}
+
+// 清空所有结果
+function clearAllResults() {
+    if (confirm('确定要清空所有修复结果吗？')) {
+        document.getElementById('resultGrid').innerHTML = '';
+    }
+}
+</script>
+
+
+         <!-- 修复数据页面 -->
+<div class="tab-panel active" id="panel-2">
+    <div class="dashboard">
+        <!-- 左中区域 -->
+        <div class="dashboard-center">
+            <!-- 数据趋势分析面板 -->
+            <div class="content-panel">
+                <h3>数据趋势分析</h3>
+                <div id="chart1" style="width: 100%; height: 400px;"></div>
+            </div>
+            
+            <!-- 修复效果对比面板 -->
+            <div class="content-panel">
+                <h3>修复效果对比</h3>
+                <div id="chart4" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+
+        <!-- 右侧区域 -->
+        <div class="dashboard-right">
+            <!-- 工种占比面板 -->
+            <div class="content-panel" style="height: 250px;">
+                <h3>模型占比</h3>
+                <div id="chart3" style="width: 100%; height: 200px;"></div>
+            </div>
+
+            <!-- 实时榜单面板 -->
+            <div class="content-panel" style="height: 250px;">
+                <h3>实时榜单</h3>
+                <div id="FontScroll">
+                    <ul>
+                        <li>图像001 完成 用时2.1s</li>
+                        <li>图像002 完成 用时1.8s</li>
+                        <li>图像003 完成 用时2.4s</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 修复类型分布面板 -->
+            <div class="content-panel" style="height: 250px;">
+                <h3>修复类型分布</h3>
+                <div id="chart2" style="width: 100%; height: 200px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <!-- 个人中心页面 -->
+<div class="tab-panel" id="panel-3">
+    <div class="profile-container">
+        <!-- 用户信息头部 -->
+        <div class="profile-header">
+        <img src="/static/images/logo.png" alt="用户头像" class="profile-avatar" id="profileAvatar">
+        <h2 class="profile-name" id="profileName">修复大师</h2>
+        <p class="profile-title">高级图像修复师 | 文化遗产保护中心</p>
+        
+        <div class="profile-stats">
+            <div class="stat-item">
+                <div class="stat-value">256</div>
+                <div class="stat-label">修复次数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">12</div>
+                <div class="stat-label">收藏项目</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">满意度</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 修改头像和昵称的表单 -->
+    <div class="profile-edit-form" id="profileEditForm" style="display: none;">
+        <h3>修改个人信息</h3>
+        <div class="form-group">
+            <label for="newAvatar">新头像:</label>
+            <input type="file" id="newAvatar" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="newName">新昵称:</label>
+            <input type="text" id="newName">
+        </div>
+        <button class="action-button" id="saveChanges">保存更改</button>
+    </div>
+    
+    <!-- 基本信息卡片 -->
+    <div class="profile-card">
+    <h3 class="card-title">
+        <i class="fas fa-user-circle"></i>
+        <span class="title-text">基本信息</span>
+    </h3>
+        <div class="info-item">
+            <div class="info-label">用户名</div>
+            <div class="info-value">宝宝</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">职位</div>
+            <div class="info-value">高级图像修复师</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">机构</div>
+            <div class="info-value">文化遗产保护中心 | 数字修复部门</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">专业领域</div>
+            <div class="info-value">古画修复、老照片修复、文物数字化</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">加入时间</div>
+            <div class="info-value">2020年5月</div>
+        </div>
+    </div>
+        
+        <!-- 修复技能卡片 -->
+        <div class="profile-card">
+            <h3 class="card-title"><i class="fas fa-tools"></i> 专业技能</h3>
+            <div class="info-item">
+                <div class="info-label">AI修复</div>
+                <div class="info-value">
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 95%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">传统修复</div>
+                <div class="info-value">
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 88%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">色彩校正</div>
+                <div class="info-value">
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 92%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">细节增强</div>
+                <div class="info-value">
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 96%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+ <!-- 近期项目卡片容器 -->
+<div class="recent-projects-container">
+    <h3><i class="fas fa-project-diagram"></i> 近期项目</h3>
+    
+    <!-- 项目卡片列表 -->
+    <div class="project-grid">
+        <!-- 项目1 -->
+        <div class="project-card" data-details='{"title":"江门侨乡老照片修复","date":"2023.08.15","tags":["AI修复","色彩还原"]}'>
+            <div class="project-image-container">
+                <img src="/static/images/江门.png" alt="江门项目" onerror="this.src='/static/images/default-project.png'">
+            </div>
+            <div class="project-content">
+                <h4>江门侨乡老照片修复</h4>
+                <div class="project-meta">
+                    <span class="project-date"><i class="far fa-calendar-alt"></i> 2023.08.15</span>
+                    <div class="project-tags">
+                        <span>AI修复</span>
+                        <span>色彩还原</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 项目2 -->
+        <div class="project-card" data-details='{"title":"清代书画数字化修复","date":"2023.07.22","tags":["细节增强","纹理修复"]}'>
+            <div class="project-image-container">
+                <img src="/static/images/书画.png" alt="书画项目" onerror="this.src='/static/images/default-project.png'">
+            </div>
+            <div class="project-content">
+                <h4>清代书画数字化修复</h4>
+                <div class="project-meta">
+                    <span class="project-date"><i class="far fa-calendar-alt"></i> 2023.07.22</span>
+                    <div class="project-tags">
+                        <span>细节增强</span>
+                        <span>纹理修复</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 项目3 -->
+        <div class="project-card" data-details='{"title":"民国档案修复工程","date":"2023.06.30","tags":["去污处理","文字增强"]}'>
+            <div class="project-image-container">
+                <img src="/static/images/文件.png" alt="档案项目" onerror="this.src='/static/images/default-project.png'">
+            </div>
+            <div class="project-content">
+                <h4>民国档案修复工程</h4>
+                <div class="project-meta">
+                    <span class="project-date"><i class="far fa-calendar-alt"></i> 2023.06.30</span>
+                    <div class="project-tags">
+                        <span>去污处理</span>
+                        <span>文字增强</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+    </div>
+</div>
+
+        <!-- 应用价值页面 -->
+       <div class="tab-panel" id="panel-4">
+    <div class="title">应用价值</div>
+    <div class="app-value-container">
+        <!-- 村镇文物修复与保护 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-landmark"></i>
+            </div>
+            <h3 class="value-title">村镇文物修复与保护</h3>
+            <p class="value-description">
+                利用AI技术高效修复村镇文物，解决自然老化和人为破坏问题，保护文化遗产。
+                特别针对偏远地区文物资源，提供低成本、高效率的数字化保护方案，建立完整的
+                村镇文物数字档案库，为后续研究和展示提供基础。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 修复效率提升300%</span>
+                <span><i class="fas fa-check-circle"></i> 成本降低60%</span>
+            </div>
+        </div>
+            
+        <!-- 数字博物馆建设 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-vr-cardboard"></i>
+            </div>
+            <h3 class="value-title">数字博物馆建设</h3>
+            <p class="value-description">
+                为博物馆提供高质量的数字化修复支持，丰富馆藏展示内容，提升观众体验。
+                支持VR/AR展示技术，实现文物360°全方位展示，突破实体展览的空间限制，
+                让珍贵文物以最佳状态呈现在全球观众面前。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 展示效果提升200%</span>
+                <span><i class="fas fa-check-circle"></i> 观众满意度达95%</span>
+            </div>
+        </div>
+            
+        <!-- 图书馆和文化遗产保护中心 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <h3 class="value-title">图书馆和文化遗产保护中心</h3>
+            <p class="value-description">
+                对受损古籍和文献进行数字化修复与存档，确保珍贵文化资料的长期保存。
+                采用AI辅助修复技术，在不接触原件的情况下完成修复工作，最大限度保护原始文物，
+                同时建立可检索的数字资源库，促进学术研究和公众教育。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 修复精度达98%</span>
+                <span><i class="fas fa-check-circle"></i> 检索效率提升5倍</span>
+            </div>
+        </div>
+            
+        <!-- 文化创意产业 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-paint-brush"></i>
+            </div>
+            <h3 class="value-title">文化创意产业</h3>
+            <p class="value-description">
+                提供高清修复素材支持文创产品设计与开发，促进传统文化元素的创新应用。
+                通过授权使用修复后的文物图像，为文创产业提供丰富素材，同时确保文物使用的
+                规范性和准确性，实现文化价值与商业价值的双赢。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 产品开发周期缩短40%</span>
+                <span><i class="fas fa-check-circle"></i> 市场接受度提高75%</span>
+            </div>
+        </div>
+
+        <!-- 教育与研究应用 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3 class="value-title">教育与研究应用</h3>
+            <p class="value-description">
+                为高校和研究机构提供高质量的文物数字资源，支持文化遗产保护相关学科的教学与研究。
+                通过修复前后的对比数据，帮助学生理解文物损坏机理和修复原理，培养新一代文物保护人才。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 教学效率提升50%</span>
+                <span><i class="fas fa-check-circle"></i> 研究数据准确性提高80%</span>
+            </div>
+        </div>
+
+        <!-- 旅游推广 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h3 class="value-title">文化旅游推广</h3>
+            <p class="value-description">
+                通过修复后的文物图像和3D模型，制作互动式旅游导览和宣传材料，
+                提升文化旅游体验。游客可通过手机APP查看文物修复前后的对比，
+                了解文物背后的历史故事，增强参观的趣味性和教育性。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 游客停留时间延长35%</span>
+                <span><i class="fas fa-check-circle"></i> 重游率提高25%</span>
+            </div>
+        </div>
+
+        <!-- 数字档案建设 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-archive"></i>
+            </div>
+            <h3 class="value-title">数字档案建设</h3>
+            <p class="value-description">
+                建立系统化的文物数字档案库，实现文物信息的长期保存和便捷检索。
+                采用区块链技术确保档案的真实性和不可篡改性，为文物研究和保护
+                提供可靠的数据支持，同时便于跨机构的数据共享与合作。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 数据检索速度提升8倍</span>
+                <span><i class="fas fa-check-circle"></i> 存储成本降低70%</span>
+            </div>
+        </div>
+
+        <!-- 国际合作交流 -->
+        <div class="value-card">
+            <div class="value-icon">
+                <i class="fas fa-globe-americas"></i>
+            </div>
+            <h3 class="value-title">国际合作交流</h3>
+            <p class="value-description">
+                通过数字化修复技术，促进国际间文物展览和交流，减少珍贵文物的运输风险。
+                支持跨国联合研究项目，共享修复技术和经验，推动全球文化遗产保护事业的发展，
+                增进不同文明间的相互理解和尊重。
+            </p>
+            <div class="value-stats">
+                <span><i class="fas fa-check-circle"></i> 国际展览成本降低60%</span>
+                <span><i class="fas fa-check-circle"></i> 合作项目增加300%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 技术路线主页面 -->
+<div class="tab-panel active" id="tech-roadmap-main">
+    <div class="sci-fi-container">
+        <div class="tech-header">
+            <h2>修复核心技术路线</h2>
+            <div class="tech-subtitle">从数据采集到专家验证的全流程技术体系</div>
+            <div class="tech-decoration">
+                <span class="decoration-line"></span>
+                <i class="fas fa-atom"></i>
+                <span class="decoration-line"></span>
+            </div>
+        </div>
+        <!-- 简洁流程图 -->
+        <div class="simple-flow">
+            <div class="flow-step" data-target="data-construction">
+                <div class="step-number">1</div>
+                <div class="step-name">数据集构建</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step" data-target="algorithm-design">
+                <div class="step-number">2</div>
+                <div class="step-name">算法设计</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step" data-target="model-testing">
+                <div class="step-number">3</div>
+                <div class="step-name">模型测试</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step" data-target="bigdata-analysis">
+                <div class="step-number">4</div>
+                <div class="step-name">大数据分析</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step" data-target="data-visualization">
+                <div class="step-number">5</div>
+                <div class="step-name">数据可视化</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step" data-target="expert-verification">
+                <div class="step-number">6</div>
+                <div class="step-name">专家验证</div>
+            </div>
+        </div>
+        
+        <!-- 项目原图展示区（初始显示） -->
+        <div class="original-image" id="original-image-container">
+            <img src="/static/images/流程图.png" alt="技术路线原图">
+            <div class="image-caption"> 网络模型技术路线图 </div>
+        </div>
+        <!-- 动态内容展示区（初始隐藏） -->
+        <div class="dynamic-content-container" id="dynamic-content"></div>
+    </div>
+</div>
+
+<!-- 数据集构建详情页 -->
+<div class="tech-detail-panel" id="data-construction">
+    <button class="back-button">← 返回流程图</button>
+    <h3>数据集构建</h3>
+    <div class="detail-content">
+        <img class="p1" src="/static/images/数据集构建.png" alt="数据采集">
+        <ul>
+            <li><i class="fas fa-map-marker-alt"></i> <strong>多源采集</strong>：江门侨乡文化遗产、增城博物馆实地采集</li>
+            <li><i class="fas fa-camera"></i> <strong>数据类型</strong>：高分辨率图像+多光谱数据+3D点云</li>
+            <li><i class="fas fa-brain"></i> <strong>增强技术</strong>：GAN模拟损毁+人工标注</li>
+            <li><i class="fas fa-database"></i> <strong>数据规模</strong>：10,000+图像样本，5种损坏类型</li>
+            <li><i class="fas fa-tags"></i> <strong>标注规范</strong>：专家团队制定损坏区域标注标准</li>
+            <li><i class="fas fa-cloud"></i> <strong>存储方案</strong>：分布式云存储确保数据安全</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 算法设计详情页 -->
+<div class="tech-detail-panel" id="algorithm-design">
+    <button class="back-button">← 返回流程图</button>
+    <h3>算法设计</h3>
+    <div class="detail-content">
+        <img src="/static/images/算法设计.png" alt="网络架构">
+        <ul>
+            <li><i class="fas fa-network-wired"></i> <strong>混合架构</strong>：GAN+Transformer+U-Net</li>
+            <li><i class="fas fa-lightbulb"></i> <strong>创新模块</strong>：文化风格特征提取子网络</li>
+            <li><i class="fas fa-project-diagram"></i> <strong>边缘引导</strong>：Canny检测+结构损失函数</li>
+            <li><i class="fas fa-layer-group"></i> <strong>技术指标</strong>：5层注意力机制，3种网络融合</li>
+            <li><i class="fas fa-code-branch"></i> <strong>多尺度特征</strong>：金字塔结构捕捉不同层次特征</li>
+            <li><i class="fas fa-palette"></i> <strong>风格迁移</strong>：基于VGG网络的风格损失计算</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 模型测试详情页 -->
+<div class="tech-detail-panel" id="model-testing">
+    <button class="back-button">← 返回流程图</button>
+    <h3>模型测试</h3>
+    <div class="detail-content">
+        <img src="/static/images/模型测试.png" alt="模型测试">
+        <ul>
+            <li><i class="fas fa-chart-line"></i> <strong>量化指标</strong>：PSNR ≥32dB，SSIM ≥0.91</li>
+            <li><i class="fas fa-robot"></i> <strong>优化策略</strong>：对抗训练+感知损失</li>
+            <li><i class="fas fa-server"></i> <strong>硬件加速</strong>：GPU集群并行测试</li>
+            <li><i class="fas fa-balance-scale"></i> <strong>对比基准</strong>：与传统方法进行AB测试</li>
+            <li><i class="fas fa-undo"></i> <strong>迭代优化</strong>：根据测试结果调整超参数</li>
+            <li><i class="fas fa-temperature-high"></i> <strong>压力测试</strong>：模拟极端损坏情况下的表现</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 大数据分析详情页 -->
+<div class="tech-detail-panel" id="bigdata-analysis">
+    <button class="back-button">← 返回流程图</button>
+    <h3>大数据分析</h3>
+    <div class="detail-content">
+        <img src="/static/images/大数据分析.png" alt="大数据分析">
+        <ul>
+            <li><i class="fas fa-database"></i> <strong>数据规模</strong>：10TB+修复过程数据</li>
+            <li><i class="fas fa-project-diagram"></i> <strong>分析维度</strong>：8维特征空间聚类</li>
+            <li><i class="fas fa-chart-pie"></i> <strong>损坏模式</strong>：常见损坏类型统计分析</li>
+            <li><i class="fas fa-link"></i> <strong>相关性研究</strong>：修复效果与损坏程度的关系</li>
+            <li><i class="fas fa-cloud"></i> <strong>计算平台</strong>：Spark分布式计算框架</li>
+            <li><i class="fas fa-filter"></i> <strong>数据清洗</strong>：异常值检测与处理</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 数据可视化详情页 -->
+<div class="tech-detail-panel" id="data-visualization">
+    <button class="back-button">← 返回流程图</button>
+    <h3>数据可视化</h3>
+    <div class="detail-content">
+        <img src="/static/images/数据可视化.png" alt="数据可视化">
+        <ul>
+            <li><i class="fas fa-chart-bar"></i> <strong>交互图表</strong>：15种可交互分析图表</li>
+            <li><i class="fas fa-cube"></i> <strong>三维展示</strong>：文物数字孪生模型</li>
+            <li><i class="fas fa-desktop"></i> <strong>实时渲染</strong>：WebGL加速的实时可视化</li>
+            <li><i class="fas fa-sliders-h"></i> <strong>动态对比</strong>：修复前后效果对比工具</li>
+            <li><i class="fas fa-map"></i> <strong>地理信息</strong>：文物出土地点GIS展示</li>
+            <li><i class="fas fa-vr-cardboard"></i> <strong>VR支持</strong>：虚拟现实环境下的文物展示</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 专家验证详情页 -->
+<div class="tech-detail-panel" id="expert-verification">
+    <button class="back-button">← 返回流程图</button>
+    <h3>专家验证</h3>
+    <div class="detail-content">
+        <img src="/static/images/专家验证.png" alt="专家验证">
+        <ul>
+            <li><i class="fas fa-user-tie"></i> <strong>专家团队</strong>：8位跨领域专家参与评估</li>
+            <li><i class="fas fa-clipboard-check"></i> <strong>评估体系</strong>：4级量化评估标准</li>
+            <li><i class="fas fa-x-ray"></i> <strong>科技手段</strong>：X射线/红外成像验证</li>
+            <li><i class="fas fa-book"></i> <strong>艺术评估</strong>：参照《元明清瓷器鉴定》标准</li>
+            <li><i class="fas fa-link"></i> <strong>区块链</strong>：关键决策上链存证</li>
+            <li><i class="fas fa-history"></i> <strong>版本管理</strong>：修复历史版本追溯</li>
+        </ul>
+    </div>
+</div>
+
+<div class="footer-slider">
+    <div class="slider-container">
+        <button class="slider-btn prev">&lt;</button>
+        <ul class="slider-list">
+            <li>图像修复</li>
+            <li class="active">修复数据</li>
+            <li>个人中心</li>
+            <li>应用价值</li>
+            <li class="active">技术路线</li>
+        </ul>
+        <button class="slider-btn next">&gt;</button>
+    </div>
+</div>
+
+<script src="/static/js/echarts.min.js"></script>
+<script src="/static/js/wodry.min.js"></script>
+<script src="/static/js/fontscroll.js"></script>
+<script src="/static/js/charts-config.js"></script>
+
+<script>
+    function getTime(){
+        var myDate = new Date();
+        var myYear = myDate.getFullYear();
+        var myMonth = myDate.getMonth()+1;
+        var myToday = myDate.getDate();
+        var myDay = myDate.getDay();
+        var myHour = myDate.getHours();
+        var myMinute = myDate.getMinutes();
+        var mySecond = myDate.getSeconds();
+        var week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        var nowTime;
+        nowTime = myYear+'-'+fillZero(myMonth)+'-'+fillZero(myToday)+' '+fillZero(myHour)+':'+fillZero(myMinute)+':'+fillZero(mySecond)+' '+week[myDay];
+        $('#time').html(nowTime);
+    };
+    function fillZero(str){
+        return (str<10)?('0'+str):str;
+    }
+    setInterval(getTime,1000);
+</script>
+
+<script>
+    const items = document.querySelectorAll('.slider-list li');
+    const panels = document.querySelectorAll('.tab-panel');
+    const prev = document.querySelector('.slider-btn.prev');
+    const next = document.querySelector('.slider-btn.next');
+    let current = 1;
+
+    function updateSlider(index) {
+        items.forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+            panels[i].style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    items.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            current = index;
+            updateSlider(current);
+        });
+    });
+
+    prev.addEventListener('click', () => {
+        current = (current - 1 + items.length) % items.length;
+        updateSlider(current);
+    });
+
+    next.addEventListener('click', () => {
+        current = (current + 1) % items.length;
+        updateSlider(current);
+    });
+
+    panels.forEach((panel, i) => {
+        panel.style.display = i === 1 ? 'block' : 'none';
+    });
+    updateSlider(current);
+</script>
+
+<script>
+   
+
+// 准备各步骤的内容数据
+const stepContents = {
+    'data-construction': {
+        title: '数据集构建',
+        image: '/static/images/数据集构建.png',
+        items: [
+            '<i class="fas fa-map-marker-alt"></i> <strong>多源采集</strong>：江门侨乡文化遗产、增城博物馆实地采集',
+            '<i class="fas fa-camera"></i> <strong>数据类型</strong>：高分辨率图像+多光谱数据+3D点云',
+            '<i class="fas fa-brain"></i> <strong>增强技术</strong>：GAN模拟损毁+人工标注',
+            '<i class="fas fa-database"></i> <strong>数据规模</strong>：10,000+图像样本，5种损坏类型'
+        ]
+    },
+    'algorithm-design': {
+        title: '算法设计',
+        image: '/static/images/算法设计.png',
+        items: [
+            '<i class="fas fa-network-wired"></i> <strong>混合架构</strong>：GAN+Transformer+U-Net',
+            '<i class="fas fa-lightbulb"></i> <strong>创新模块</strong>：文化风格特征提取子网络',
+            '<i class="fas fa-project-diagram"></i> <strong>边缘引导</strong>：Canny检测+结构损失函数',
+            '<i class="fas fa-layer-group"></i> <strong>技术指标</strong>：5层注意力机制，3种网络融合'
+        ]
+    },
+    'model-testing': {
+        title: '模型测试',
+        image: '/static/images/模型测试.png',
+        items: [
+            '<i class="fas fa-chart-line"></i> <strong>量化指标</strong>：PSNR ≥32dB，SSIM ≥0.91',
+            '<i class="fas fa-robot"></i> <strong>优化策略</strong>：对抗训练+感知损失',
+            '<i class="fas fa-server"></i> <strong>硬件加速</strong>：GPU集群并行测试',
+            '<i class="fas fa-balance-scale"></i> <strong>对比基准</strong>：与传统方法进行AB测试'
+        ]
+    },
+    'bigdata-analysis': {
+        title: '大数据分析',
+        image: '/static/images/大数据分析.png',
+        items: [
+            '<i class="fas fa-database"></i> <strong>数据规模</strong>：10TB+修复过程数据',
+            '<i class="fas fa-project-diagram"></i> <strong>分析维度</strong>：8维特征空间聚类',
+            '<i class="fas fa-chart-pie"></i> <strong>损坏模式</strong>：常见损坏类型统计分析',
+            '<i class="fas fa-link"></i> <strong>相关性研究</strong>：修复效果与损坏程度的关系'
+        ]
+    },
+    'data-visualization': {
+        title: '数据可视化',
+        image: '/static/images/数据可视化.png',
+        items: [
+            '<i class="fas fa-chart-bar"></i> <strong>交互图表</strong>：15种可交互分析图表',
+            '<i class="fas fa-cube"></i> <strong>三维展示</strong>：文物数字孪生模型',
+            '<i class="fas fa-desktop"></i> <strong>实时渲染</strong>：WebGL加速的实时可视化',
+            '<i class="fas fa-sliders-h"></i> <strong>动态对比</strong>：修复前后效果对比工具'
+        ]
+    },
+    'expert-verification': {
+        title: '专家验证',
+        image: '/static/images/专家验证.png',
+        items: [
+            '<i class="fas fa-user-tie"></i> <strong>专家团队</strong>：8位跨领域专家参与评估',
+            '<i class="fas fa-clipboard-check"></i> <strong>评估体系</strong>：4级量化评估标准',
+            '<i class="fas fa-x-ray"></i> <strong>科技手段</strong>：X射线/红外成像验证',
+            '<i class="fas fa-book"></i> <strong>艺术评估</strong>：参照《元明清瓷器鉴定》标准'
+        ]
+    }
+};
+
+// 在现有的script标签中添加
+document.querySelectorAll('.upload-area').forEach(area => {
+    area.addEventListener('mouseenter', function() {
+        // 创建粒子效果
+        for (let i = 0; i < 10; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'sci-fi-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            this.appendChild(particle);
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                particle.remove();
+            }, 1000);
+        }
+    });
+});
+
+// 点击流程图步骤的处理
+document.querySelectorAll('.flow-step').forEach(step => {
+    step.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const contentData = stepContents[targetId];
+        
+        // 隐藏原图
+        document.getElementById('original-image-container').style.display = 'none';
+        
+        // 显示动态内容区
+        const dynamicContent = document.getElementById('dynamic-content');
+        dynamicContent.style.display = 'block';
+        
+        // 填充内容
+        dynamicContent.innerHTML = `
+            <h4>${contentData.title}</h4>
+            <div class="dynamic-content">
+                <img src="${contentData.image}" alt="${contentData.title}">
+                <ul>
+                    ${contentData.items.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+            <button class="back-button" id="back-to-original">← 返回技术路线图</button>
+        `;
+        
+        // 添加返回按钮事件
+        document.getElementById('back-to-original').addEventListener('click', backToOriginal);
+        
+        // 平滑滚动到内容区域
+        dynamicContent.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+// 返回原图函数
+function backToOriginal() {
+    document.getElementById('original-image-container').style.display = 'block';
+    document.getElementById('dynamic-content').style.display = 'none';
+    document.getElementById('original-image-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+// 导航切换时重置显示
+document.querySelectorAll('.slider-list li').forEach(tab => {
+    tab.addEventListener('click', function() {
+        if (!this.classList.contains('active')) {
+            backToOriginal();
+        }
+    });
+});
+
+// 在现有的 script 标签中添加以下代码
+document.addEventListener('DOMContentLoaded', function() {
+    // 单图上传相关
+    const singleUploadArea = document.getElementById('singleUploadArea');
+    const singleImageUpload = document.getElementById('singleImageUpload');
+    const singlePreview = document.getElementById('singlePreview');
+    const singleStatus = document.getElementById('singleStatus');
+    
+    // 批量上传相关
+    const batchUploadArea = document.getElementById('batchUploadArea');
+    const batchFileUpload = document.getElementById('batchFileUpload');
+    const batchFileList = document.getElementById('batchFileList');
+    const batchStatus = document.getElementById('batchStatus');
+    const batchProgress = document.getElementById('batchProgress');
+    const progressBar = batchProgress.querySelector('.progress-bar');
+    const progressText = batchProgress.querySelector('.progress-text');
+    
+    // 结果区域相关
+    const resultContainer = document.getElementById('resultContainer');
+    const resultGrid = document.getElementById('resultGrid');
+    const downloadAllBtn = document.getElementById('downloadAll');
+    const clearResultsBtn = document.getElementById('clearResults');
+    const downloadTemplate = document.getElementById('downloadTemplate');
+
+    //获取项目卡片和模态元素
+    const projectItems = document.querySelectorAll('.project-item');
+    const modal = document.getElementById('projectModal');
+    const span = document.querySelector('.close');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDate = document.getElementById('modalDate');
+    const modalTags = document.getElementById('modalTags');
+
+    
+    // 拖放区域高亮
+    function highlight(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.style.borderColor = '#00d8ff';
+        this.style.backgroundColor = 'rgba(0, 216, 255, 0.1)';
+    }
+    
+    function unhighlight(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.style.borderColor = '#0b3d66';
+        this.style.backgroundColor = '';
+    }
+    
+    // 单图上传处理
+    singleUploadArea.addEventListener('click', function() {
+        singleImageUpload.click();
+    });
+    
+    singleImageUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            handleSingleUpload(file);
+        }
+    });
+    
+    // 单图拖放处理
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        singleUploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        singleUploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        singleUploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    singleUploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (file && file.type.match('image.*')) {
+            handleSingleUpload(file);
+        } else {
+            showStatus(singleStatus, '请上传有效的图像文件', 'error');
+        }
+    });
+    
+    // 批量上传处理
+    batchUploadArea.addEventListener('click', function() {
+        batchFileUpload.click();
+    });
+    
+    batchFileUpload.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            handleBatchUpload(files);
+        }
+    });
+    
+    // 批量拖放处理
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        batchUploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        batchUploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        batchUploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    batchUploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = Array.from(dt.files);
+        if (files.length > 0) {
+            handleBatchUpload(files);
+        }
+    });
+    
+    // 下载模板
+    downloadTemplate.addEventListener('click', function(e) {
+        e.preventDefault();
+        showStatus(batchStatus, '正在下载模板文件...', 'info');
+        // 模拟下载
+        setTimeout(() => {
+            showStatus(batchStatus, '模板文件下载完成', 'success');
+        }, 1500);
+    });
+
+    document.getElementById('profileAvatar').addEventListener('click', function() {
+        document.getElementById('profileEditForm').style.display = 'block';
+    });
+    document.getElementById('profileName').addEventListener('click', function() {
+        document.getElementById('profileEditForm').style.display = 'block';
+    });
+
+ // 为每个项目卡片添加点击事件监听器
+    projectItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const details = JSON.parse(this.getAttribute('data-details'));
+
+            // 显示模态框并填充项目详情
+            modal.style.display = 'block';
+            modalTitle.textContent = details.title;
+            modalDate.textContent = `修复完成: ${details.date}`;
+            modalTags.innerHTML = details.tags.map(tag => `<span>${tag}</span>`).join('');
+        });
+    });
+
+    // 关闭模态框
+    span.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    // 点击模态框外部关闭模态框
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+
+    // 保存更改
+    document.getElementById('saveChanges').addEventListener('click', function() {
+        const newAvatar = document.getElementById('newAvatar').files[0];
+        const newName = document.getElementById('newName').value;
+
+        // 这里需要添加代码来处理文件上传和昵称更新(后端接口)
+        // 例如，使用fetch API发送数据到服务器
+
+        // 更新页面上的头像和昵称
+        document.getElementById('profileAvatar').src = URL.createObjectURL(newAvatar);
+        document.getElementById('profileName').textContent = newName;
+
+        // 隐藏表单
+        document.getElementById('profileEditForm').style.display = 'none';
+    });
+    
+    // 下载全部结果
+ downloadAllBtn.addEventListener('click', async function() {
+    const items = resultGrid.querySelectorAll('.result-item');
+    if (items.length === 0) {
+        showStatus(singleStatus, '没有可下载的结果', 'warning');
+        return;
+    }
+    
+    showStatus(singleStatus, '正在准备下载所有修复结果...', 'info');
+    
+    try {
+        const zip = new JSZip();  // 注意是 JSZip 不是 JSzip
+        const imgFolder = zip.folder("修复结果");
+        
+        // 显示进度条
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        batchProgress.style.display = 'block';
+        
+        // 处理每张图片
+        for (const [index, item] of items.entries()) {
+            const img = item.querySelector('img');  // 注意拼写是 querySelector
+            const fileName = item.querySelector('.item-info')?.textContent || `image_${index+1}.jpg`;
+            
+            try {
+                const response = await fetch(img.src);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const blob = await response.blob();
+                imgFolder.file(fileName, blob);
+                
+                // 更新进度
+                const progress = Math.floor(((index + 1) / items.length) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${progress}%`;
+            } catch (error) {
+                console.error(`图片下载失败: ${fileName}`, error);
+            }
+        }
+        
+        // 生成并下载ZIP文件
+        const content = await zip.generateAsync({type: "blob"});
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "修复结果.zip";
+        document.body.appendChild(a);
+        a.click();
+        
+        // 清理
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus(singleStatus, '所有修复结果已打包下载', 'success');
+            batchProgress.style.display = 'none';
+        }, 100);
+        
+    } catch (error) {
+        console.error('打包下载失败:', error);
+        showStatus(singleStatus, '打包下载失败: ' + error.message, 'error');
+        batchProgress.style.display = 'none';
+    }
+});
+});
+
+// 修改后的清空结果功能
+document.getElementById('clearResults').addEventListener('click', function() {
+    // 清空结果区域
+    resultGrid.innerHTML = '';
+    
+    // 重置单图上传区域
+    singlePreview.innerHTML = '';
+    singlePreview.style.display = 'none';
+    singleImageUpload.value = '';
+    
+    // 重置批量上传区域
+    batchFileList.innerHTML = '';
+    batchFileUpload.value = '';
+    progressBar.style.width = '0%';
+    progressText.textContent = '0%';
+    batchProgress.style.display = 'none';
+    
+    // 隐藏结果容器
+    resultContainer.style.display = 'none';
+    
+    // 重置状态信息
+    showStatus(singleStatus, '已清空所有修复结果', 'info');
+    showStatus(batchStatus, '', 'info');
+});
+    
+    // 辅助函数
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function showStatus(element, message, type) {
+        element.innerHTML = `<span class="status-${type}">${message}</span>`;
+        if (type === 'info') {
+            element.innerHTML = `<span class="status-${type}"><span class="loading-spinner"></span> ${message}</span>`;
+        }
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    // // 处理单图上传
+    // function handleSingleUpload(file) {
+    //     if (!file.type.match('image.*')) {
+    //         showStatus(singleStatus, '请上传有效的图像文件', 'error');
+    //         return;
+    //     }
+        
+    //     showStatus(singleStatus, '正在上传图像...', 'info');
+        
+    //     // 模拟上传过程
+    //     setTimeout(() => {
+    //         const reader = new FileReader();
+    //         reader.onload = function(e) {
+    //             singlePreview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+    //             singlePreview.style.display = 'block';
+    //             showStatus(singleStatus, '图像上传成功，正在修复...', 'info');
+                
+    //             // 模拟修复过程
+    //             setTimeout(() => {
+    //                 showStatus(singleStatus, '图像修复完成', 'success');
+    //                 addResultItem(e.target.result, file.name);
+    //             }, 2000);
+    //         };
+    //         reader.readAsDataURL(file);
+    //     }, 1000);
+    // }
+    
+// 处理批量上传
+function handleBatchUpload(files) {
+    batchFileList.innerHTML = '';
+    batchProgress.style.display = 'block';
+    showStatus(batchStatus, '正在处理文件...', 'info');
+    
+    let totalFiles = 0;
+    let processedFiles = 0;
+    
+    // 首先计算总文件数（包括ZIP中的图片）
+    function countFiles(files) {
+        return Promise.all(files.map(file => {
+            if (file.type.match('image.*')) {
+                totalFiles++;
+                return Promise.resolve();
+            } else if (file.name.endsWith('.zip')) {
+                return JSZip.loadAsync(file).then(zip => {
+                    let imgCount = 0;
+                    zip.forEach((relativePath, zipEntry) => {
+                        if (!zipEntry.dir && /\.(jpg|jpeg|png|gif)$/i.test(zipEntry.name)) {
+                            imgCount++;
+                        }
+                    });
+                    totalFiles += imgCount;
+                }).catch(() => {
+                    // ZIP文件读取失败，不计入总数
+                });
+            }
+            return Promise.resolve();
+        }));
+    }
+    
+    // 处理文件并更新进度
+    function processFiles(files) {
+        return Promise.all(files.map(file => {
+            if (file.type.match('image.*')) {
+                return processImageFile(file);
+            } else if (file.name.endsWith('.zip')) {
+                return processZipFile(file);
+            }
+            return Promise.resolve();
+        }));
+    }
+    
+    // 处理单个图片文件
+    function processImageFile(file) {
+        return new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                addResultItem(e.target.result, file.name);
+                processedFiles++;
+                updateProgress();
+                resolve();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    // 处理ZIP文件
+    function processZipFile(file) {
+        return JSZip.loadAsync(file)
+            .then(zip => {
+                const promises = [];
+                zip.forEach((relativePath, zipEntry) => {
+                    if (!zipEntry.dir && /\.(jpg|jpeg|png|gif)$/i.test(zipEntry.name)) {
+                        promises.push(
+                            zipEntry.async('blob').then(blob => {
+                                const imgFile = new File([blob], zipEntry.name, {type: blob.type});
+                                return processImageFile(imgFile);
+                            })
+                        );
+                    }
+                });
+                return Promise.all(promises);
+            })
+            .catch(error => {
+                console.error('ZIP文件解压错误:', error);
+                showStatus(batchStatus, 'ZIP文件解压失败: ' + error.message, 'error');
+                return Promise.resolve();
+            });
+    }
+    
+    // 更新进度
+    function updateProgress() {
+        const progress = totalFiles > 0 ? Math.floor((processedFiles / totalFiles) * 100) : 100;
+        progressBar.style.width = progress + '%';
+        progressText.textContent = progress + '%';
+        
+        if (processedFiles >= totalFiles) {
+            showStatus(batchStatus, '所有文件处理完成', 'success');
+            setTimeout(() => batchProgress.style.display = 'none', 1000);
+        }
+    }
+    
+    // 开始处理
+    countFiles(files)
+        .then(() => {
+            if (totalFiles === 0) {
+                showStatus(batchStatus, '没有找到有效的图片文件', 'warning');
+                batchProgress.style.display = 'none';
+                return;
+            }
+            
+            // 使用setTimeout让UI有时间更新
+            setTimeout(() => {
+                processFiles(files).then(() => {
+                    // 确保进度到达100%
+                    if (processedFiles < totalFiles) {
+                        processedFiles = totalFiles;
+                        updateProgress();
+                    }
+                });
+            }, 100);
+        });
+}
+
+// 添加结果项 - 确保图片正确显示
+function addResultItem(imageSrc, fileName) {
+    resultContainer.style.display = 'block';
+    
+    const resultItem = document.createElement('div');
+    resultItem.className = 'result-item';
+    resultItem.innerHTML = `
+        <img src="${imageSrc}" alt="修复结果" onerror="this.src='https://via.placeholder.com/300x200/0b3d66/ff0000?text=图片加载失败'">
+        <div class="item-info">${fileName}</div>
+        <div class="item-actions">
+            <button class="view-btn" data-src="${imageSrc}"><i class="fas fa-search"></i></button>
+            <button class="download-btn" data-src="${imageSrc}" data-name="${fileName}"><i class="fas fa-download"></i></button>
+        </div>
+    `;
+    resultGrid.appendChild(resultItem);
+    
+    // 查看大图功能
+    resultItem.querySelector('.view-btn').addEventListener('click', function() {
+        const src = this.getAttribute('data-src');
+        showImageModal(src);
+    });
+    
+    // 下载单图 - 确保事件监听器正确添加
+    resultItem.querySelector('.download-btn').addEventListener('click', function() {
+        const src = this.getAttribute('data-src');
+        const name = this.getAttribute('data-name');
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showStatus(singleStatus, '已下载: ' + name, 'success');
+    });
+}
+
+
+
+// 修改后的清空结果功能
+clearResultsBtn.addEventListener('click', function() {
+    resultGrid.innerHTML = '';
+    singlePreview.innerHTML = '';
+    singlePreview.style.display = 'none';
+    singleImageUpload.value = '';
+    batchFileUpload.value = '';
+    batchFileList.innerHTML = '';
+    resultContainer.style.display = 'none';
+    showStatus(singleStatus, '已清空所有修复结果', 'info');
+    showStatus(batchStatus, '', 'info');
+    progressBar.style.width = '0%';
+    progressText.textContent = '0%';
+    batchProgress.style.display = 'none';
+});
+
+
+// 创建图片模态框函数
+function showImageModal(imageSrc) {
+    // 如果已有模态框则先移除
+    const existingModal = document.getElementById('imageModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // 创建模态框HTML
+    const modalHTML = `
+        <div id="imageModal" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        ">
+            <div style="position: relative; max-width: 90%; max-height: 90%;">
+                <img src="${imageSrc}" style="
+                    max-width: 100%;
+                    max-height: 90vh;
+                    border: 2px solid #00d8ff;
+                    box-shadow: 0 0 20px rgba(0,216,255,0.5);
+                ">
+                <button style="
+                    position: absolute;
+                    top: -15px;
+                    right: -15px;
+                    background: #ff4d4d;
+                    color: white;
+                    border: none;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    font-size: 16px;
+                    cursor: pointer;
+                ">×</button>
+            </div>
+        </div>
+    `;
+    
+    // 插入到body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // 添加关闭事件
+    const modal = document.getElementById('imageModal');
+    modal.querySelector('button').addEventListener('click', () => {
+        modal.remove();
+    });
+    
+    // 点击背景关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    // ESC键关闭
+    document.addEventListener('keydown', function escClose(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', escClose);
+        }
+    });
+}
+        
+        // 下载单图
+        resultItem.querySelector('.download-btn').addEventListener('click', function() {
+            const src = this.getAttribute('data-src');
+            const name = this.getAttribute('data-name');
+            const a = document.createElement('a');
+            a.href = src;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showStatus(singleStatus, '已下载: ' + name, 'success');
+        });
+    
+
+</script>
+
+</body>
+</html>

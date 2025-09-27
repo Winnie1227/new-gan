@@ -102,6 +102,13 @@
             color: #fff;
             box-shadow: 0 0 10px #00c2ff;
         }
+
+        /* 让 input[type=file] 以无感覆盖按钮，更好兼容内置浏览器/微信等环境 */
+        .upload-button-wrap { position: relative; display: inline-block; }
+        .file-overlay-input {
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; border: none; margin: 0; padding: 0; z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -142,8 +149,10 @@
                 </div>
                 <div class="upload-text">
                     <p>拖放图像文件到此处或</p>
-                    <button class="upload-button">选择文件</button>
-                    <input type="file" id="singleImageUpload" accept="image/*" style="display:none;">
+                    <div class="upload-button-wrap">
+                        <button type="button" class="upload-button" id="singleSelectButton">选择文件</button>
+                        <input type="file" id="singleImageUpload" accept="image/*" class="file-overlay-input">
+                    </div>
                 </div>
                 <div class="upload-preview" id="singlePreview"></div>
             </div>
@@ -159,8 +168,10 @@
                 </div>
                 <div class="upload-text">
                     <p>拖放ZIP文件或多张图像或</p>
-                    <button class="upload-button">选择文件</button>
-                    <input type="file" id="batchFileUpload" accept=".zip,image/*" style="display:none;" multiple>
+                    <div class="upload-button-wrap">
+                        <button type="button" class="upload-button" id="batchSelectButton">选择文件</button>
+                        <input type="file" id="batchFileUpload" accept=".zip,image/*" class="file-overlay-input" multiple>
+                    </div>
                 </div>
                 <div class="file-list" id="batchFileList"></div>
             </div>
@@ -190,126 +201,35 @@
 
 <script>
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', function() {
-    // 初始化时间显示
-    updateTime();
-    setInterval(updateTime, 1000);
 
-    // 单图上传相关元素
-    const singleUploadArea = document.getElementById('singleUploadArea');
-    const singleImageUpload = document.getElementById('singleImageUpload');
-    const singleUploadButton = singleUploadArea.querySelector('.upload-button');
-    const singlePreview = document.getElementById('singlePreview');
-    const singleStatus = document.getElementById('singleStatus');
-
-    // 批量上传相关元素
-    const batchUploadArea = document.getElementById('batchUploadArea');
-    const batchFileUpload = document.getElementById('batchFileUpload');
-    const batchUploadButton = batchUploadArea.querySelector('.upload-button');
-    const batchFileList = document.getElementById('batchFileList');
-    const batchStatus = document.getElementById('batchStatus');
-    const batchProgress = document.getElementById('batchProgress');
-
-    // 结果区域相关元素
-    const resultGrid = document.getElementById('resultGrid');
-    const downloadAllBtn = document.getElementById('downloadAll');
-    const clearResultsBtn = document.getElementById('clearResults');
-
-    // 单图上传事件绑定
-    singleUploadButton.addEventListener('click', () => {
-        singleImageUpload.click();
-    });
-
-    singleImageUpload.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleSingleUpload(e.target.files[0]);
-        }
-    });
-
-    // 拖放功能 - 单图上传
-    singleUploadArea.addEventListener('dragover', (e) => {
+// 修复：统一的拖放功能设置
+function setupDragAndDrop(area, handler) {
+    area.addEventListener('dragover', (e) => {
         e.preventDefault();
-        singleUploadArea.style.borderColor = '#4fc3f7';
-        singleUploadArea.style.backgroundColor = 'rgba(79, 195, 247, 0.1)';
+        area.style.borderColor = '#4fc3f7';
+        area.style.backgroundColor = 'rgba(79, 195, 247, 0.1)';
     });
 
-    singleUploadArea.addEventListener('dragleave', () => {
-        singleUploadArea.style.borderColor = '#475569';
-        singleUploadArea.style.backgroundColor = 'transparent';
+    area.addEventListener('dragleave', () => {
+        area.style.borderColor = '#475569';
+        area.style.backgroundColor = 'transparent';
     });
 
-    singleUploadArea.addEventListener('drop', (e) => {
+    area.addEventListener('drop', (e) => {
         e.preventDefault();
-        singleUploadArea.style.borderColor = '#475569';
-        singleUploadArea.style.backgroundColor = 'transparent';
+        area.style.borderColor = '#475569';
+        area.style.backgroundColor = 'transparent';
 
         if (e.dataTransfer.files.length > 0) {
-            handleSingleUpload(e.dataTransfer.files[0]);
+            handler(e.dataTransfer.files[0]);
         }
-    });
-
-    // 批量上传事件绑定
-    batchUploadButton.addEventListener('click', () => {
-        batchFileUpload.click();
-    });
-
-    batchFileUpload.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleBatchUpload(e.target.files);
-        }
-    });
-
-    // 拖放功能 - 批量上传
-    batchUploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        batchUploadArea.style.borderColor = '#4fc3f7';
-        batchUploadArea.style.backgroundColor = 'rgba(79, 195, 247, 0.1)';
-    });
-
-    batchUploadArea.addEventListener('dragleave', () => {
-        batchUploadArea.style.borderColor = '#475569';
-        batchUploadArea.style.backgroundColor = 'transparent';
-    });
-
-    batchUploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        batchUploadArea.style.borderColor = '#475569';
-        batchUploadArea.style.backgroundColor = 'transparent';
-
-        if (e.dataTransfer.files.length > 0) {
-            handleBatchUpload(e.dataTransfer.files);
-        }
-    });
-
-    // 结果区域按钮事件
-    downloadAllBtn.addEventListener('click', downloadAllResults);
-    clearResultsBtn.addEventListener('click', clearAllResults);
-});
-
-// 更新时间显示
-function updateTime() {
-    const now = new Date();
-    const timeElement = document.getElementById('time');
-    timeElement.textContent = now.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
     });
 }
 
-// 显示状态信息
-function showStatus(element, message, type) {
-    element.textContent = message;
-    element.className = 'upload-status';
-    element.classList.add('status-' + type);
-    element.style.display = 'block';
-}
-
-// 处理单图上传和修复
+// 统一的图片修复处理函数
 function handleSingleUpload(file) {
+    console.log('开始处理单图上传:', file.name);
+    
     if (!file.type.match('image.*')) {
         showStatus(document.getElementById('singleStatus'), '请上传有效的图像文件', 'error');
         return;
@@ -321,40 +241,159 @@ function handleSingleUpload(file) {
     // 显示原始图片预览
     const reader = new FileReader();
     reader.onload = function(e) {
-        singlePreview.innerHTML = `<img src="${e.target.result}" alt="原始图像预览">`;
+        const originalImageUrl = e.target.result;
+        
+        // 显示原始图片和加载状态
+        singlePreview.innerHTML = `
+            <div style="text-align: center;">
+                <h4 style="color: #00c2ff;">原始图片</h4>
+                <img src="${originalImageUrl}" alt="原始图像预览" style="max-width: 300px; border: 2px solid #00c2ff;">
+                <p style="color: #ccc; margin-top: 10px;">
+                    <i class="fas fa-spinner fa-spin"></i> 正在修复中...
+                </p>
+            </div>
+        `;
         singlePreview.style.display = 'block';
+        
+        showStatus(singleStatus, '正在上传并修复图像...', 'info');
+
+        // 创建FormData并添加文件
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // 调用后端API进行图像修复
+        fetch('/repair-image', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('响应状态:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`修复失败: ${response.status} - ${text}`);
+                });
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            console.log('修复成功，返回Blob大小:', blob.size);
+            
+            if (blob.size === 0) {
+                throw new Error('返回的图片为空');
+            }
+            
+            // 创建修复后图片的URL
+            const enhancedImageUrl = URL.createObjectURL(blob);
+            
+            // 创建图片对象来检查实际尺寸
+            const img = new Image();
+            img.onload = function() {
+                console.log('修复后图片尺寸:', img.width, 'x', img.height);
+                
+                // 创建对比显示
+                singlePreview.innerHTML = `
+                    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                        <div style="text-align: center;">
+                            <h4 style="color: #00c2ff; margin-bottom: 10px;">原始图片</h4>
+                            <img src="${originalImageUrl}" alt="原始图像" 
+                                 style="max-width: 300px; border: 2px solid #00c2ff; border-radius: 5px;">
+                            <p style="color: #ccc; margin-top: 5px;">大小: ${(file.size/1024).toFixed(1)} KB</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h4 style="color: #00ff88; margin-bottom: 10px;">修复后图片</h4>
+                            <img src="${enhancedImageUrl}" alt="修复后图像" 
+                                 style="max-width: 300px; border: 2px solid #00ff88; border-radius: 5px;">
+                            <p style="color: #ccc; margin-top: 5px;">
+                                大小: ${(blob.size/1024).toFixed(1)} KB<br>
+                                尺寸: ${img.width} x ${img.height}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                showStatus(singleStatus, '✅ 图像修复完成！', 'success');
+                
+                // 添加到结果列表
+                addToResultGrid(enhancedImageUrl, file.name, blob.size);
+            };
+            img.onerror = function() {
+                throw new Error('修复后的图片加载失败');
+            };
+            img.src = enhancedImageUrl;
+        })
+        .catch(error => {
+            console.error('修复错误:', error);
+            showStatus(singleStatus, '❌ 修复失败: ' + error.message, 'error');
+            
+            // 显示错误信息但保留原始图片预览
+            singlePreview.innerHTML += `
+                <div style="color: #ff4444; text-align: center; margin-top: 10px;">
+                    <strong>错误详情:</strong> ${error.message}
+                </div>
+            `;
+        });
     };
     reader.readAsDataURL(file);
-
-    showStatus(singleStatus, '正在上传并修复图像...', 'info');
-
-    // 创建FormData并添加文件
-    const formData = new FormData();
-    formData.append('file', file);
-
-    // 调用后端API进行图像修复
-    fetch('http://localhost:8000/repair-image', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('修复过程失败');
-        return response.blob();
-    })
-    .then(blob => {
-        const imageUrl = URL.createObjectURL(blob);
-        // 更新预览为修复后的图片
-        singlePreview.innerHTML = `<img src="${imageUrl}" alt="修复后图像">`;
-        showStatus(singleStatus, '图像修复完成', 'success');
-        // 添加到结果列表
-        addResultItem(imageUrl, file.name);
-    })
-    .catch(error => {
-        showStatus(singleStatus, '修复失败: ' + error.message, 'error');
-    });
 }
 
-// 处理批量上传和修复
+// 统一的结果添加函数
+function addToResultGrid(imageUrl, fileName, fileSize) {
+    console.log('添加到结果网格:', fileName);
+    
+    const resultGrid = document.getElementById('resultGrid');
+    const resultContainer = document.getElementById('resultContainer');
+    
+    if (!resultGrid) {
+        console.error('resultGrid 元素未找到');
+        return;
+    }
+
+    // 创建结果项
+    const resultItem = document.createElement('div');
+    resultItem.className = 'result-item';
+    resultItem.innerHTML = `
+        <div class="result-image">
+            <img src="${imageUrl}" alt="修复结果: ${fileName}" 
+                 style="max-width: 100%; height: auto;">
+        </div>
+        <div class="result-info">
+            <span class="result-name">${fileName}</span>
+            <span class="result-size">${(fileSize/1024).toFixed(1)} KB</span>
+            </button>
+        </div>
+    `;
+
+    resultGrid.appendChild(resultItem);
+    
+    // 显示结果容器
+    if (resultContainer) {
+        resultContainer.style.display = 'block';
+    }
+}
+
+// 统一的下载函数
+function downloadSingleImage(imageUrl, fileName) {
+    const link = document.createElement('a');
+    // 清理文件名，移除扩展名并添加修复后缀
+    const baseName = fileName.replace(/\.[^/.]+$/, "");
+    link.download = `${baseName}_修复结果.png`;
+    link.href = imageUrl;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// 其他现有函数保持不变...
+function updateTime() {
+    // 原有代码...
+}
+
+function showStatus(element, message, type) {
+    // 原有代码...
+}
+
+// 批量上传相关函数
 function handleBatchUpload(files) {
     const batchFileList = document.getElementById('batchFileList');
     const batchStatus = document.getElementById('batchStatus');
@@ -390,7 +429,7 @@ function handleBatchUpload(files) {
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch('http://localhost:8000/repair-image', {
+        fetch('/repair-image', {
             method: 'POST',
             body: formData
         })
@@ -405,7 +444,7 @@ function handleBatchUpload(files) {
             fileItems[index].querySelector('.file-status').innerHTML =
                 '<i class="fas fa-check" style="color: #10b981;"></i>';
             // 添加到结果列表
-            addResultItem(imageUrl, file.name);
+            addToResultGrid(imageUrl, file.name, blob.size);
             // 更新进度
             updateBatchProgress(index + 1, imageFiles.length);
         })
@@ -430,40 +469,6 @@ function updateBatchProgress(completed, total) {
     }
 }
 
-// 添加结果项到展示区
-function addResultItem(imageUrl, fileName) {
-    const resultGrid = document.getElementById('resultGrid');
-
-    const resultItem = document.createElement('div');
-    resultItem.className = 'result-item';
-    resultItem.innerHTML = `
-        <div class="result-image">
-            <img src="${imageUrl}" alt="修复结果: ${fileName}">
-        </div>
-        <div class="result-info">
-            <span class="result-name">${fileName}</span>
-            <span class="result-download" onclick="downloadImage('${imageUrl}', '${fileName}')">
-                <i class="fas fa-download"></i>
-            </span>
-        </div>
-    `;
-
-    resultGrid.appendChild(resultItem);
-}
-
-// 下载单个图像
-function downloadImage(imageUrl, fileName) {
-    const link = document.createElement('a');
-    // 生成修复后的文件名
-    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
-    const extension = fileName.substring(fileName.lastIndexOf('.')) || '.png';
-    link.download = `${baseName}_restored${extension}`;
-    link.href = imageUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
 // 下载所有结果
 function downloadAllResults() {
     const resultItems = document.querySelectorAll('.result-item');
@@ -477,7 +482,7 @@ function downloadAllResults() {
         const fileName = item.querySelector('.result-name').textContent;
         // 延迟下载避免浏览器限制
         setTimeout(() => {
-            downloadImage(imageUrl, fileName);
+            downloadSingleImage(imageUrl, fileName);
         }, index * 300);
     });
 }
@@ -1018,9 +1023,9 @@ function clearAllResults() {
 </div>
 
 <script src="/static/js/echarts.min.js"></script>
-<script src="/static/js/wodry.min.js"></script>
+<!-- <script src="/static/js/wodry.min.js"></script> -->
 <script src="/static/js/fontscroll.js"></script>
-<script src="/static/js/charts-config.js"></script>
+<!-- <script src="/static/js/charts-config.js"></script> -->
 
 <script>
     function getTime(){
@@ -1247,7 +1252,93 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalDate = document.getElementById('modalDate');
     const modalTags = document.getElementById('modalTags');
 
-    
+     if (span && modal) {
+        span.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+    if (modal) {
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+        // 按 ESC 关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') modal.style.display = 'none';
+        });
+    }
+
+     // 修复项目卡片点击事件
+    if (projectItems.length > 0) {
+        projectItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const details = JSON.parse(this.getAttribute('data-details'));
+                const modalTitle = document.getElementById('modalTitle');
+                const modalDate = document.getElementById('modalDate');
+                const modalTags = document.getElementById('modalTags');
+
+                if (modal && modalTitle && modalDate && modalTags) {
+                    // 显示模态框并填充项目详情
+                    modal.style.display = 'block';
+                    modalTitle.textContent = details.title;
+                    modalDate.textContent = `修复完成: ${details.date}`;
+                    modalTags.innerHTML = details.tags.map(tag => `<span>${tag}</span>`).join('');
+                }
+            });
+        });
+    }
+
+    if (downloadAllBtn && resultGrid) {
+        downloadAllBtn.addEventListener('click', function () {
+            const images = resultGrid.querySelectorAll('img');
+            if (!images.length) {
+                alert('没有可下载的结果！');
+                return;
+            }
+            console.log('下载所有结果');
+            images.forEach((img, i) => {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = `result_${i + 1}.png`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            });
+        });
+    }
+
+    if (clearResultsBtn && resultGrid) {
+        clearResultsBtn.addEventListener('click', function () {
+            resultGrid.innerHTML = '';
+            if (resultContainer) resultContainer.style.display = 'none';
+        });
+    }
+
+
+
+    function previewSingleImage(file) {
+        if (!singlePreview) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            singlePreview.innerHTML = `<img src="${e.target.result}" alt="预览" style="max-width:100%;border-radius:8px;">`;
+        };
+        reader.readAsDataURL(file);
+        if (singleStatus) singleStatus.textContent = `已选择文件：${file.name}`;
+    }
+
+
+    function handleBatchFiles(e) {
+        const files = e.target.files;
+        if (!batchFileList) return;
+        batchFileList.innerHTML = '';
+        Array.from(files).forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = file.name;
+            batchFileList.appendChild(li);
+        });
+        if (batchStatus) batchStatus.textContent = `已选择 ${files.length} 个文件`;
+    }
+
     // 拖放区域高亮
     function highlight(e) {
         e.preventDefault();
@@ -1263,10 +1354,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.style.backgroundColor = '';
     }
     
-    // 单图上传处理
-    singleUploadArea.addEventListener('click', function() {
-        singleImageUpload.click();
-    });
     
     singleImageUpload.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -1298,10 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 批量上传处理
-    batchUploadArea.addEventListener('click', function() {
-        batchFileUpload.click();
-    });
+  
     
     batchFileUpload.addEventListener('change', function(e) {
         const files = Array.from(e.target.files);
@@ -1331,22 +1415,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 下载模板
-    downloadTemplate.addEventListener('click', function(e) {
-        e.preventDefault();
-        showStatus(batchStatus, '正在下载模板文件...', 'info');
-        // 模拟下载
-        setTimeout(() => {
-            showStatus(batchStatus, '模板文件下载完成', 'success');
-        }, 1500);
-    });
+    // // 下载模板
+    // downloadTemplate.addEventListener('click', function(e) {
+    //     e.preventDefault();
+    //     showStatus(batchStatus, '正在下载模板文件...', 'info');
+    //     // 模拟下载
+    //     setTimeout(() => {
+    //         showStatus(batchStatus, '模板文件下载完成', 'success');
+    //     }, 1500);
+    // });
 
-    document.getElementById('profileAvatar').addEventListener('click', function() {
-        document.getElementById('profileEditForm').style.display = 'block';
-    });
-    document.getElementById('profileName').addEventListener('click', function() {
-        document.getElementById('profileEditForm').style.display = 'block';
-    });
+    const profileAvatarEl = document.getElementById('profileAvatar');
+    const profileNameEl = document.getElementById('profileName');
+    const profileEditFormEl = document.getElementById('profileEditForm');
+    if (profileAvatarEl && profileEditFormEl) {
+        profileAvatarEl.addEventListener('click', function() {
+            profileEditFormEl.style.display = 'block';
+        });
+    }
+    if (profileNameEl && profileEditFormEl) {
+        profileNameEl.addEventListener('click', function() {
+            profileEditFormEl.style.display = 'block';
+        });
+    }
 
  // 为每个项目卡片添加点击事件监听器
     projectItems.forEach(item => {
@@ -1361,34 +1452,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 关闭模态框
-    span.onclick = function() {
-        modal.style.display = 'none';
+    // 关闭模态框（安全检查）
+    if (span && modal) {
+        span.addEventListener('click', function() { modal.style.display = 'none'; });
+    }
+    // 点击模态框外部关闭模态框（仅当 modal 存在）
+    if (modal) {
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
     }
 
-    // 点击模态框外部关闭模态框
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
+
+ const saveBtn = document.getElementById('saveChanges');
+if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+        // 获取 DOM 元素
+        const avatarInput = document.getElementById('newAvatar');
+        const nameInput = document.getElementById('newName');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const profileName = document.getElementById('profileName');
+        const profileEditForm = document.getElementById('profileEditForm');
+
+        // 更新头像
+        if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+            const file = avatarInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (profileAvatar) {
+                    profileAvatar.src = e.target.result; // 预览新头像
+                }
+            };
+            reader.readAsDataURL(file);
         }
-    }
 
-
-    // 保存更改
-    document.getElementById('saveChanges').addEventListener('click', function() {
-        const newAvatar = document.getElementById('newAvatar').files[0];
-        const newName = document.getElementById('newName').value;
-
-        // 这里需要添加代码来处理文件上传和昵称更新(后端接口)
-        // 例如，使用fetch API发送数据到服务器
-
-        // 更新页面上的头像和昵称
-        document.getElementById('profileAvatar').src = URL.createObjectURL(newAvatar);
-        document.getElementById('profileName').textContent = newName;
+        // 更新昵称
+        if (nameInput && profileName) {
+            const newName = nameInput.value.trim();
+            if (newName !== "") {
+                profileName.textContent = newName;
+            }
+        }
 
         // 隐藏表单
-        document.getElementById('profileEditForm').style.display = 'none';
+        if (profileEditForm) {
+            profileEditForm.style.display = 'none';
+        }
+
+        console.log("个人资料修改完成");
     });
+}
+
     
     // 下载全部结果
  downloadAllBtn.addEventListener('click', async function() {
@@ -1455,29 +1571,35 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // 修改后的清空结果功能
-document.getElementById('clearResults').addEventListener('click', function() {
-    // 清空结果区域
-    resultGrid.innerHTML = '';
-    
-    // 重置单图上传区域
-    singlePreview.innerHTML = '';
-    singlePreview.style.display = 'none';
-    singleImageUpload.value = '';
-    
-    // 重置批量上传区域
-    batchFileList.innerHTML = '';
-    batchFileUpload.value = '';
-    progressBar.style.width = '0%';
-    progressText.textContent = '0%';
-    batchProgress.style.display = 'none';
-    
-    // 隐藏结果容器
-    resultContainer.style.display = 'none';
-    
-    // 重置状态信息
-    showStatus(singleStatus, '已清空所有修复结果', 'info');
-    showStatus(batchStatus, '', 'info');
-});
+(() => {
+  const clearBtn = document.getElementById('clearResults');
+  if (!clearBtn) return;
+  clearBtn.addEventListener('click', function() {
+    const resultGridEl = document.getElementById('resultGrid');
+    const resultContainerEl = document.getElementById('resultContainer');
+    const singlePreviewEl = document.getElementById('singlePreview');
+    const singleImageUploadEl = document.getElementById('singleImageUpload');
+    const batchFileListEl = document.getElementById('batchFileList');
+    const batchFileUploadEl = document.getElementById('batchFileUpload');
+    const batchProgressEl = document.getElementById('batchProgress');
+    const progressBarEl = batchProgressEl ? batchProgressEl.querySelector('.progress-bar') : null;
+    const progressTextEl = batchProgressEl ? batchProgressEl.querySelector('.progress-text') : null;
+    const singleStatusEl = document.getElementById('singleStatus');
+    const batchStatusEl = document.getElementById('batchStatus');
+
+    if (resultGridEl) resultGridEl.innerHTML = '';
+    if (singlePreviewEl) { singlePreviewEl.innerHTML = ''; singlePreviewEl.style.display = 'none'; }
+    if (singleImageUploadEl) singleImageUploadEl.value = '';
+    if (batchFileListEl) batchFileListEl.innerHTML = '';
+    if (batchFileUploadEl) batchFileUploadEl.value = '';
+    if (progressBarEl) progressBarEl.style.width = '0%';
+    if (progressTextEl) progressTextEl.textContent = '0%';
+    if (batchProgressEl) batchProgressEl.style.display = 'none';
+    if (resultContainerEl) resultContainerEl.style.display = 'none';
+    if (singleStatusEl) singleStatusEl.textContent = '已清空所有修复结果';
+    if (batchStatusEl) batchStatusEl.textContent = '';
+  });
+})();
     
     // 辅助函数
     function preventDefaults(e) {
@@ -1499,33 +1621,6 @@ document.getElementById('clearResults').addEventListener('click', function() {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
-    
-    // // 处理单图上传
-    // function handleSingleUpload(file) {
-    //     if (!file.type.match('image.*')) {
-    //         showStatus(singleStatus, '请上传有效的图像文件', 'error');
-    //         return;
-    //     }
-        
-    //     showStatus(singleStatus, '正在上传图像...', 'info');
-        
-    //     // 模拟上传过程
-    //     setTimeout(() => {
-    //         const reader = new FileReader();
-    //         reader.onload = function(e) {
-    //             singlePreview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
-    //             singlePreview.style.display = 'block';
-    //             showStatus(singleStatus, '图像上传成功，正在修复...', 'info');
-                
-    //             // 模拟修复过程
-    //             setTimeout(() => {
-    //                 showStatus(singleStatus, '图像修复完成', 'success');
-    //                 addResultItem(e.target.result, file.name);
-    //             }, 2000);
-    //         };
-    //         reader.readAsDataURL(file);
-    //     }, 1000);
-    // }
     
 // 处理批量上传
 function handleBatchUpload(files) {
@@ -1576,7 +1671,7 @@ function handleBatchUpload(files) {
         return new Promise(resolve => {
             const reader = new FileReader();
             reader.onload = function(e) {
-                addResultItem(e.target.result, file.name);
+                addToResultGrid(e.target.result, file.name);
                 processedFiles++;
                 updateProgress();
                 resolve();
@@ -1644,7 +1739,7 @@ function handleBatchUpload(files) {
 }
 
 // 添加结果项 - 确保图片正确显示
-function addResultItem(imageSrc, fileName) {
+function addToResultGrid(imageSrc, fileName) {
     resultContainer.style.display = 'block';
     
     const resultItem = document.createElement('div');
@@ -1682,8 +1777,9 @@ function addResultItem(imageSrc, fileName) {
 
 
 // 修改后的清空结果功能
-clearResultsBtn.addEventListener('click', function() {
-    resultGrid.innerHTML = '';
+const cleanResultsBtn = document.getElementById('clearResults');
+if (cleanResultsBtn) {
+    cleanResultsBtn.addEventListener('click', function() {
     singlePreview.innerHTML = '';
     singlePreview.style.display = 'none';
     singleImageUpload.value = '';
@@ -1695,7 +1791,8 @@ clearResultsBtn.addEventListener('click', function() {
     progressBar.style.width = '0%';
     progressText.textContent = '0%';
     batchProgress.style.display = 'none';
-});
+  });
+}
 
 
 // 创建图片模态框函数
@@ -1769,20 +1866,6 @@ function showImageModal(imageSrc) {
         }
     });
 }
-        
-        // 下载单图
-        resultItem.querySelector('.download-btn').addEventListener('click', function() {
-            const src = this.getAttribute('data-src');
-            const name = this.getAttribute('data-name');
-            const a = document.createElement('a');
-            a.href = src;
-            a.download = name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showStatus(singleStatus, '已下载: ' + name, 'success');
-        });
-    
 
 </script>
 

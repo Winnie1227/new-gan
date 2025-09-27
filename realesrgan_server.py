@@ -146,3 +146,14 @@ async def not_found_handler(request, exc):
         status_code=404,
         content={"error": "接口不存在", "path": request.url.path}
     )
+
+# -------------------------- 启动服务器 --------------------------
+if __name__ == "__main__":
+    import uvicorn
+    print("\n===== 启动 RealESRGAN 服务器 =====")
+    uvicorn.run(
+        app, 
+        host="127.0.0.1", 
+        port=8001,
+        log_level="info"
+    )

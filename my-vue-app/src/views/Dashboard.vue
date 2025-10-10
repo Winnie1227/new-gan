@@ -717,9 +717,9 @@ const getChart4Option = () => ({
   flex: 2; /* 占据2份空间 */
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  min-width: 300px;
-  min-height: 725px;
+  gap: 0.1rem;
+  min-width: 280px;
+  min-height: 630px;
 }
 
 /* 调整左侧内部容器比例 */
@@ -730,7 +730,7 @@ const getChart4Option = () => ({
 
 .dashboard-left .content-panel:nth-child(2) {
   flex: 2; /* 下面容器占据2份，高度是上面的2倍 */
-  min-height: 300px;
+  min-height: 350px;
 }
 
 /* 中间区域样式 */
@@ -749,7 +749,7 @@ const getChart4Option = () => ({
   flex-direction: column; /* 垂直排列 */
   gap: 1rem; /* 子元素间距 */
   min-width: 300px; /* 最小宽度 */
-  min-height: 725px; /* 最小高度 */
+  min-height: 600px; /* 最小高度 */
 }
 
 /* 内容面板通用样式 */
@@ -788,7 +788,7 @@ const getChart4Option = () => ({
 /* 图表容器样式 */
 .chart-container {
   flex: 1; /* 弹性填充 */
-  min-height: 200px; /* 最小高度 */
+  min-height: 180px; /* 最小高度 */
 }
 
 /* 实时榜单容器样式 */

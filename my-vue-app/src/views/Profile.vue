@@ -352,6 +352,7 @@ export default {
     padding: 3rem;
     color: #fff;
     overflow: auto;
+     min-height: 110vh; /* 新增：确保容器有足够高度 */
 }
 
 .profile-header {

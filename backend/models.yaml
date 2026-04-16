@@ -1,0 +1,17 @@
+models:
+  pt_places2:
+    path: ./pretrained/states_pt_places2.pth  # 使用相对路径
+    load_at_startup: True
+    return_vals: [inpainted, stage1]
+  tf_places2:
+    path: ./pretrained/states_tf_places2.pth
+    load_at_startup: False  # 设为False，因为文件不存在
+    return_vals: [inpainted, stage1]
+  tf_celebahq:
+    path: ./pretrained/states_tf_celebahq.pth
+    load_at_startup: False  # 设为False，因为文件不存在
+    return_vals: [inpainted, stage1]
+  pt_celebahq:
+    path: ./pretrained/states_pt_celebahq.pth
+    load_at_startup: False
+    return_vals: [inpainted, stage1]

@@ -154,26 +154,21 @@ export default {
 }
 </script>
 
-<style>
-/* 应用价值主容器 - 增强科幻风格 */
+<style scoped>
+/* 应用价值主容器 */
 #panel-4 {
-    background: #0a1a2a;
-    border-radius: 10px;
-    padding: 15px;
+    background: transparent;
+    border-radius: 12px;
+    padding: 30px;
     position: relative;
     overflow: hidden;
-    margin-top: 25rem;
+    margin-top: 20px;
     border: 1px solid rgba(0, 216, 255, 0.4);
     box-shadow: 
-        0 0 10px rgba(0, 216, 255, 0.3),
-        0 0 20px rgba(0, 216, 255, 0.2),
-        0 0 30px rgba(0, 216, 255, 0.1),
-        inset 0 0 15px rgba(0, 216, 255, 0.1);
-}
-
-/* 如果想要呼吸效果的发光边框，可以添加这个动画 */
-#panel-4 {
+        0 0 15px rgba(0, 216, 255, 0.2),
+        inset 0 0 20px rgba(0, 216, 255, 0.05);
     animation: glowBorder 3s ease-in-out infinite;
+    padding-bottom: 80px;
 }
 
 @keyframes glowBorder {
@@ -181,26 +176,26 @@ export default {
         box-shadow: 
             0 0 15px rgba(0, 216, 255, 0.3),
             inset 0 0 15px rgba(0, 216, 255, 0.05);
-        border-color: rgba(0, 216, 255, 0.2);
+        border-color: rgba(0, 216, 255, 0.3);
     }
     50% {
         box-shadow: 
-            0 0 25px rgba(0, 216, 255, 0.6),
-            inset 0 0 25px rgba(0, 216, 255, 0.15);
-        border-color: rgba(0, 216, 255, 0.5);
+            0 0 25px rgba(0, 216, 255, 0.5),
+            inset 0 0 25px rgba(0, 216, 255, 0.1);
+        border-color: rgba(0, 216, 255, 0.6);
     }
 }
 
 #panel-4 .title {
-    font-size: 7rem;
+    font-size: 32px;
     color: #00d8ff;
     text-align: center;
-    margin-bottom: 20px;
-    letter-spacing: 0.1rem;
-    text-shadow: 0 0 10px #00d8ff;
-    margin-left: 70px;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(0, 216, 255, 0.8);
     position: relative;
-    padding: 0 120px;
+    padding: 0 20px;
+    font-weight: 600;
 }
 
 /* 双装饰线 */
@@ -210,125 +205,164 @@ export default {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 600px;
+    width: 100px;
     height: 2px;
     background: linear-gradient(90deg, 
         transparent, 
         #00d8ff, 
         #00f5d4, 
-        #00d8ff, 
         transparent
     );
 }
 
 #panel-4 .title::before {
-    left: 0;
+    left: 20%;
 }
 #panel-4 .title::after {
-    right: 0;
+    right: 20%;
 }
 
-/* 价值卡片网格布局 - 增强科技感 */
+/* 价值卡片网格布局 - 调整为更平衡的上下分布 */
 .app-value-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 15px; /* 卡片之间的间距 */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
     padding: 10px;
 }
 
-/* 科幻风格价值卡片 */
+/* 科幻风格价值卡片 - 半透明，统一高度 */
 .value-card {
-    background: #0d3753; /* 卡片背景色 */
-    border-radius: 10px; /* 圆角边框 */
-    padding: 10px; /* 内边距 */
+    background: rgba(13, 55, 83, 0.5);
+    border-radius: 12px;
+    padding: 24px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 216, 255, 0.1);
+    border: 1px solid rgba(0, 216, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 320px;
 }
 
 .value-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 216, 255, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 216, 255, 0.3);
+    border-color: rgba(0, 216, 255, 0.5);
 }
 
 .value-card::before {
     content: "";
     position: absolute;
     top: 0;
-    left: 0;
+    left: -100%;
     width: 100%;
     height: 100%;
-    background: rgba(0, 216, 255, 0.1);
-    z-index: -1;
-    border-radius: 10px;
-    animation: glow 2s infinite alternate;
+    background: linear-gradient(90deg, transparent, rgba(0, 216, 255, 0.1), transparent);
+    transition: left 0.5s;
 }
 
-/* 发光动画 */
-@keyframes glow {
-    from {
-        opacity: 0.5;
-    }
-    to {
-        opacity: 1;
-    }
+.value-card:hover::before {
+    left: 100%;
 }
 
-/* 图标样式 - 增强科技感 */
+/* 图标样式 */
 .value-icon {
-    font-size: 13rem; /* 图标大小 */
-    color: #00d8ff; /* 图标颜色 */
-    margin-bottom: 10px; /* 图标底部外边距 */
-    text-shadow: 0 0 10px #00d8ff; /* 添加发光效果 */
+    font-size: 48px;
+    color: #00d8ff;
+    margin-bottom: 16px;
+    text-shadow: 0 0 20px rgba(0, 216, 255, 0.6);
 }
 
 /* 卡片标题 */
 .value-card h3 {
-    font-size: 6rem; /* 标题字体大小 */
-    color: #10bcab; /* 标题颜色 */
-    margin-bottom: 10px; /* 标题底部外边距 */
+    font-size: 20px;
+    color: #10bcab;
+    margin-bottom: 12px;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
 /* 卡片描述文字 */
 .value-card p {
-    font-size: 1.2rem; /* 描述文字字体大小 */
-    color: #c0c0c0; /* 描述文字颜色 */
+    font-size: 14px;
+    color: #c0c0c0;
     line-height: 1.6;
-    margin-bottom: 20px; /* 描述文字底部外边距 */
+    margin-bottom: 16px;
+    flex: 1;
 }
 
 /* 卡片底部统计信息 */
 .value-stats {
     display: flex;
-    flex-wrap: wrap; /* 允许项目换行 */
-    font-size: 0.8rem; /* 统计信息字体大小 */
-    color: #ffffff; /* 统计信息颜色 */
-    gap: 10px; /* 控制项目之间的间距 */
-    margin-top: 10px; /* 顶部外边距 */
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #ffffff;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 8px;
 }
 
 .value-stats span {
-    white-space: nowrap; /* 防止文本换行 */
-    border-radius: 15px; /* 圆角边框 */
-    padding: 5px 10px; /* 内边距 */
-    background: rgba(0, 216, 255, 0.1); /* 背景色 */
+    white-space: nowrap;
+    border-radius: 20px;
+    padding: 6px 12px;
+    background: rgba(0, 216, 255, 0.15);
+    border: 1px solid rgba(0, 216, 255, 0.3);
 }
 
-/* 响应式调整 */
+.value-stats i {
+    color: #00d8ff;
+    margin-right: 4px;
+}
+
+/* 响应式调整 - 让布局在不同屏幕下保持平衡 */
 @media (max-width: 1200px) {
     .app-value-container {
         grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    #panel-4 .title::before,
+    #panel-4 .title::after {
+        width: 60px;
     }
 }
 
 @media (max-width: 768px) {
     .app-value-container {
         grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    #panel-4 {
+        padding: 20px;
+        padding-bottom: 60px;
+        margin-top: 10px;
     }
     
     #panel-4 .title {
-        font-size: 1.8rem;
+        font-size: 24px;
+    }
+    
+    #panel-4 .title::before,
+    #panel-4 .title::after {
+        display: none;
+    }
+    
+    .value-card {
+        padding: 20px;
+        min-height: auto;
+    }
+    
+    .value-icon {
+        font-size: 36px;
+    }
+    
+    .value-card h3 {
+        font-size: 18px;
     }
 }
 </style>

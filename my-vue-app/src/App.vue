@@ -1,21 +1,20 @@
-<!-- 简化App.vue 入口文件 -->
 <template>
   <div id="app">
     <!-- 登录页面单独显示 -->
     <template v-if="isLoginPage">
       <router-view></router-view>
     </template>
-    
+
     <!-- 主应用布局 -->
     <template v-else>
       <!-- 头部组件 -->
       <AppHeader />
-      
+
       <!-- 主要内容区域 -->
       <main class="main-content">
         <router-view></router-view>
       </main>
-      
+
       <!-- 底部导航 -->
       <FooterSlider />
     </template>

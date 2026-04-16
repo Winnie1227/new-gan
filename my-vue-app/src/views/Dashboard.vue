@@ -3,54 +3,63 @@
     <div class="dashboard">
       <!-- 左侧区域 -->
       <div class="dashboard-left">
-        <!-- 修复图片总数及完成率面板 -->
-        <div class="content-panel">
+        <!-- 修复图片总数及完成率面板 - 压缩 -->
+        <div class="content-panel panel-small">
           <h3>修复图片总数及完成率</h3>
-          <div ref="chart4" class="chart-container" :style="{ height: '350px' }"></div>
+          <!-- 移除固定高度，让CSS控制 -->
+          <div ref="chart4" class="chart-container"></div>
         </div>
-        <!--数据集来源及修复时间 -->
-        <div class="content-panel">
+        <!-- 数据集来源及修复时间 - 加长 -->
+        <div class="content-panel panel-large">
           <h3>数据集来源及修复时间</h3>
-          <div ref="externalChart1" class="chart-container" :style="{ height: '350px' }"></div>
+          <!-- 移除固定高度 -->
+          <div ref="externalChart1" class="chart-container"></div>
         </div>
       </div>
 
-      <!-- 中间区域 - 放置地图模型 -->
+      <!-- 中间地图 - 保持 -->
       <div class="dashboard-center">
         <div class="content-panel map-panel">
-          <div class="map-container" :style="{ height: '720px' }">
-            <!-- 这里放置地图组件 -->
-            <div ref="mapChart" class="chart-container"></div>
+          <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9">
+            <select v-model="currentMap"
+              style="width:120px;height:28px;background:rgba(0,0,0,.5);color:#00c2ff;border:1px solid #00c2ff;border-radius:4px;padding-left:6px">
+              <option value="guangxi">广西</option>
+              <option value="fujian">福建</option>
+            </select>
           </div>
+          <!-- 地图高度稍微减小 -->
+          <div ref="mapChart" class="chart-container" :style="{height:'520px'}"></div>
         </div>
       </div>
 
-      <!-- 右侧区域 -->
+      <!-- 右侧区域 - 下移 -->
       <div class="dashboard-right">
-        <!-- 建筑类型占比面板 -->
-        <div class="content-panel">
+        <!-- 建筑类型占比 - 增大 -->
+        <div class="content-panel panel-top">
           <h3>建筑类型占比</h3>
-          <div ref="chart3" class="chart-container" :style="{ height: '200px' }"></div>
+          <!-- 移除固定高度 -->
+          <div ref="chart3" class="chart-container"></div>
         </div>
 
-        <!-- 实时榜单面板 -->
+        <!-- 实时榜单 -->
         <div class="content-panel">
           <h3>实时榜单</h3>
-          <div class="realtime-ranking" :style="{ height: '200px' }">
+          <div class="realtime-ranking">
             <ul ref="rankingList">
-              <li><span class="rank-item">图像001</span><span class="rank-time">用时2.1s</span></li>
-              <li><span class="rank-item">图像002</span><span class="rank-time">用时1.8s</span></li>
-              <li><span class="rank-item">图像003</span><span class="rank-time">用时2.4s</span></li>
-              <li><span class="rank-item">图像004</span><span class="rank-time">用时1.9s</span></li>
-              <li><span class="rank-item">图像005</span><span class="rank-time">用时2.2s</span></li>
+              <li><span class="rank-item">图像001</span><span class="rank-time">用时5.1s</span></li>
+              <li><span class="rank-item">图像002</span><span class="rank-time">用时6.8s</span></li>
+              <li><span class="rank-item">图像003</span><span class="rank-time">用时3.4s</span></li>
+              <li><span class="rank-item">图像004</span><span class="rank-time">用时8.9s</span></li>
+              <li><span class="rank-item">图像005</span><span class="rank-time">用时4.2s</span></li>
             </ul>
           </div>
         </div>
 
-        <!-- 建筑地理位置显示面板 -->
+        <!-- 建筑地理位置显示 -->
         <div class="content-panel">
           <h3>建筑地理位置显示</h3>
-          <div ref="chart2" class="chart-container" :style="{ height: '200px' }"></div>
+          <!-- 移除固定高度 -->
+          <div ref="chart2" class="chart-container"></div>
         </div>
       </div>
     </div>
@@ -58,12 +67,15 @@
 </template>
 
 <script>
-import { onMounted, onUnmounted, ref, inject } from 'vue';
+import { onMounted, onUnmounted, ref, inject, watch } from 'vue';
 
 export default {
   name: 'Dashboard',
   setup() {
     const echarts = inject('echarts');
+
+    const currentMap = ref('guangxi')   // 默认广西
+    let mapInstance = null
     
     // 原有图表引用
     const chart2 = ref(null);
@@ -97,28 +109,7 @@ export default {
           console.log('图表4初始化完成');
         }
 
-        // 在 initCharts 函数中添加调试
-if (mapChart.value) {
-  const mapInstance = echarts.init(mapChart.value);
-  try {
-    const mapOption = getMapOption();
-    console.log('地图配置:', mapOption);
-    console.log('地图数据:', mapOption.series[0].data);
-    
-    mapInstance.setOption(mapOption);
-    
-    // 检查设置后的数据
-    setTimeout(() => {
-      const currentOption = mapInstance.getOption();
-      console.log('当前地图数据:', currentOption.series[0].data);
-    }, 1000);
-    
-    chartInstances.push(mapInstance);
-    console.log('地图初始化完成');
-  } catch (mapError) {
-    console.error('地图初始化失败:', mapError);
-  }
-}
+        initMap()
 
 
         // 初始化右侧图表
@@ -163,99 +154,6 @@ if (mapChart.value) {
       }
     };
 
-  const getMapOption = () => {
-  const mapData = [
-    { name: '广东', value: 450 },
-    { name: '北京', value: 120 },
-    { name: '上海', value: 90 },
-    { name: '浙江', value: 180 },
-    { name: '江苏', value: 200 },
-    { name: '四川', value: 150 },
-    { name: '福建', value: 130 },
-    { name: '山东', value: 160 },
-    { name: '湖北', value: 110 },
-    { name: '湖南', value: 100 },
-    { name: '河南', value: 95 },
-    { name: '河北', value: 85 }
-  ];
-
-  console.log('地图数据准备:', mapData);
-
-  return {
-    title: {
-      text: '图像修复地理位置分布',
-      left: 'center',
-      textStyle: {
-        color: '#fff',
-        fontSize: 18
-      }
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: function(params) {
-        console.log('Tooltip参数:', params);
-        if (params.data) {
-          return `${params.name}<br/>修复数量: ${params.data.value || 0}`;
-        }
-        return `${params.name}<br/>修复数量: 0`;
-      }
-    },
-    visualMap: {
-      type: 'continuous',
-      min: 0,
-      max: 500,
-      text: ['高', '低'],
-      realtime: false,
-      calculable: true,
-      inRange: {
-        color: ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027']
-      },
-      textStyle: {
-        color: '#fff'
-      },
-      left: 'left',
-      top: 'bottom'
-    },
-    series: [{
-      name: '修复图像数量',
-      type: 'map',
-      map: 'china',
-      roam: true,
-      center: [105, 36], // 调整地图中心点位置 [经度, 纬度]
-      zoom: 1.5, // 调整地图缩放级别，数值越大显示越大
-      emphasis: {
-        label: {
-          show: true,
-          color: '#fff'
-        },
-        itemStyle: {
-          areaColor: '#ff6b6b'
-        }
-      },
-      itemStyle: {
-        areaColor: '#2B91B7',
-        borderColor: '#00FFFF',
-        borderWidth: 1
-      },
-      data: mapData,
-      // 添加名称映射，确保省份名称匹配
-      nameMap: {
-        '广东省': '广东',
-        '北京市': '北京',
-        '上海市': '上海',
-        '浙江省': '浙江',
-        '江苏省': '江苏',
-        '四川省': '四川',
-        '福建省': '福建',
-        '山东省': '山东',
-        '湖北省': '湖北',
-        '湖南省': '湖南',
-        '河南省': '河南',
-        '河北省': '河北'
-      }
-    }]
-  };
-};
 
 const getSimpleMapOption = () => {
   return {
@@ -364,6 +262,58 @@ const getSimpleMapOption = () => {
     }
   ]
 });
+
+        /* ===== 新增 2 ===== */
+    // 动态注册地图
+    const registerMap = async (adcode) => {
+      if (echarts.getMap(adcode)) return;   // 已注册过
+      const res = await fetch(`/geo/${adcode}.json`);
+      const geo = await res.json();
+      echarts.registerMap(adcode, geo);
+    };
+
+
+    // 新的地图配置函数（替换原来的 getMapOption）
+    // 地图配置（动态地图名）
+    const getMapOption = () => ({
+      title: { show: false },
+      tooltip: { trigger: 'item' },
+      visualMap: {
+        type: 'continuous',
+        min: 0,
+        max: 500,
+        text: ['高', '低'],
+        calculable: true,
+        inRange: { color: ['#4575b4', '#74add1', '#abd9e9', '#ffffbf', '#fdae61', '#d73027'] },
+        textStyle: { color: '#fff' },
+        left: 'left', bottom: 'bottom'
+      },
+      series: [{
+        name: '修复数量',
+        type: 'map',
+        map: currentMap.value,   // 关键：动态切换
+        roam: true,
+        emphasis: { label: { show: true, color: '#fff' } },
+        data: [
+          /* 示例数据：name 必须跟 GeoJSON 里的市/县名一致 */
+          { name: '南宁市', value: 220 },
+          { name: '横州市', value: 100 },
+          { name: '崇左市', value: 95 },
+          { name: '柳州市', value: 80 },
+          { name: '贵港市', value: 80 },
+          { name: '钦州市', value: 77 },
+          { name: '百色市', value: 70 },
+          { name: '桂林市', value: 60 },
+          { name: '泉州市', value: 420 },
+          { name: '厦门市', value: 140 },
+          { name: '龙岩市', value: 120 },
+          { name: '福州市', value: 90 },
+          { name: '漳州市', value: 70 }
+          
+        ]
+      }]
+    })
+    /* ================= */
 
     const getChart3Option = () => ({
   title: {
@@ -615,7 +565,7 @@ const getChart4Option = () => ({
   },
   xAxis: [{ 
     type:'category', 
-    data: ['粤西碉楼遗产群', '潮汕祠堂影像集', '江门古塔影像集', '江门民居影像集', '江门牌坊影像集', '江门会馆影像集', '江门庙宇影像集', '江门宗祠影像集'], 
+    data: ['横州市云表镇伏波庙', '崇左市左江归龙斜塔', '桂林市兴安县灵渠', '百色市西林岑氏家族建筑群', '钦州市灵山县佛子镇大芦古村', '贵港市君子垌客家围屋群', '泉州市鲤城区西街', '福州市鼓楼区中山路'], 
     axisLine: { lineStyle: { color:'#00FFE3' } }, 
     axisLabel: { 
       color:'#ebf8ac',
@@ -664,6 +614,14 @@ const getChart4Option = () => ({
   ]
 });
 
+const initMap = () => {
+  if (!mapInstance) {
+    mapInstance = echarts.init(mapChart.value)
+    chartInstances.push(mapInstance)
+  }
+  mapInstance.setOption(getMapOption(), true)
+}
+
     onMounted(() => {
       console.log('Dashboard 组件已挂载');
       
@@ -684,208 +642,292 @@ const getChart4Option = () => ({
       });
     });
 
+    watch(currentMap, v => {
+  console.log('切换到地图：', v)
+  initMap()
+})
+
+// 生命周期
+onMounted(() => {
+  initCharts()      // 你原来的其他图
+  initMap()         // 地图
+  initScrollEffect()
+})
+
     return {
       chart2,
       chart3,
       chart4,
       rankingList,
       externalChart1,
-      mapChart
+      mapChart,
+      currentMap
     };
   }
 };
 </script>
 
+
+
+
 <style scoped>
-/* 仪表板主面板样式 */
+/* ========== 仪表板主面板 ========== */
 .dashboard-panel {
-  height: 100vh; /* 全屏高度 */
+  height: 100vh;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-/* 仪表板容器布局 */
+/* ========== 仪表板容器 ========== */
 .dashboard {
-  display: flex; /* 使用弹性布局 */
-  gap: 1rem; /* 子元素间距 */
-  padding: 15rem 0 0 0; /* 内边距 */
-  height: 100%; /* 继承父容器高度 */
-  min-height: 800px; /* 最小高度 */
-  box-sizing: border-box; /* 盒模型计算方式 */
+  display: flex;
+  gap: 10px;
+  padding: 5px 0 0 0;
+  height: 100%;
+  min-height: 800px !important;
+  box-sizing: border-box;
+  margin-top: 5px;
 }
 
-/* 左侧区域样式 */
+/* ========== 左侧区域 - 保持不动 ========== */
 .dashboard-left {
-  flex: 2; /* 占据2份空间 */
+  flex: 1.5;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  min-width: 280px;
-  min-height: 630px;
+  gap: 10px;
+  min-width: 260px;
+  min-height: 700px !important;
+  margin-left: -10px;
+  margin-top: 20px;
+  height: auto !important;
 }
 
-/* 调整左侧内部容器比例 */
-.dashboard-left .content-panel:nth-child(1) {
-  flex: 1; /* 上面容器占据1份 */
-  min-height: 200px; /* 可以设置更小的高度 */
+.dashboard-left .panel-small {
+  flex: 2.5 !important;
+  min-height: 300px !important;
+  height: 300px !important;
 }
 
-.dashboard-left .content-panel:nth-child(2) {
-  flex: 2; /* 下面容器占据2份，高度是上面的2倍 */
-  min-height: 350px;
+.dashboard-left .panel-small .chart-container {
+  height: 260px !important;
+  min-height: 260px !important;
+  max-height: none !important;
 }
 
-/* 中间区域样式 */
+.dashboard-left .panel-large {
+  flex: 2 !important;
+  min-height: 350px !important;
+  height: 350px !important;
+}
+
+.dashboard-left .panel-large .chart-container {
+  height: 310px !important;
+  min-height: 310px !important;
+}
+
+/* ========== 中间区域 - 拉长面板，放大地图 ========== */
 .dashboard-center {
-  flex: 3; /* 占据3份空间 */
-  display: flex; /* 弹性布局 */
-  flex-direction: column; /* 垂直排列 */
-  gap: 1rem; /* 子元素间距 */
-  min-height: 725px; /* 最小高度 */
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* 关键：拉长中间面板 */
+  min-height: 650px !important;  /* 从 500px 增大到 650px */
+  margin-top: 80px !important;
+  margin-bottom: 20px !important;
+  height: auto !important;
 }
 
-/* 右侧区域样式 */
-.dashboard-right {
-  flex: 1; /* 占据1份空间 */
-  display: flex; /* 弹性布局 */
-  flex-direction: column; /* 垂直排列 */
-  gap: 1rem; /* 子元素间距 */
-  min-width: 300px; /* 最小宽度 */
-  min-height: 600px; /* 最小高度 */
-}
-
-/* 内容面板通用样式 */
-.content-panel {
-  border-radius: 8px; /* 圆角边框 */
-  padding: 1rem; /* 内边距 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* 阴影效果 */
-  position: relative; /* 相对定位 */
-  overflow: hidden; /* 隐藏溢出内容 */
-  flex: 1; /* 弹性填充 */
-  display: flex; /* 弹性布局 */
-  flex-direction: column; /* 垂直排列 */
-}
-
-/* 内容面板顶部装饰线 */
-.content-panel::before {
-  content: ''; /* 伪元素内容 */
-  position: absolute; /* 绝对定位 */
-  top: 0; /* 顶部对齐 */
-  left: 0; /* 左侧对齐 */
-  right: 0; /* 右侧对齐 */
-  height: 2px; /* 高度 */
-  background: linear-gradient(to right, #00c2ff, #0066ff); /* 渐变背景 */
-}
-
-/* 面板标题样式 */
-.content-panel h3 {
-  margin: 0 0 1rem 0; /* 外边距 */
-  color: #00c2ff; /* 文字颜色 */
-  font-size: 1.1rem; /* 字体大小 */
-  font-weight: 600; /* 字体粗细 */
-  text-align: center; /* 文字居中 */
-  flex-shrink: 0; /* 禁止收缩 */
-}
-
-/* 图表容器样式 */
-.chart-container {
-  flex: 1; /* 弹性填充 */
-  min-height: 180px; /* 最小高度 */
-}
-
-/* 实时榜单容器样式 */
-.realtime-ranking {
-  flex: 1; /* 弹性填充 */
-  overflow: hidden; /* 隐藏溢出内容 */
-  position: relative; /* 相对定位 */
-}
-
-/* 榜单列表样式 */
-.realtime-ranking ul {
-  list-style: none; /* 去除列表样式 */
-  padding: 0; /* 去除内边距 */
-  margin: 0; /* 去除外边距 */
-  height: 100%; /* 继承父容器高度 */
-}
-
-/* 榜单列表项样式 */
-.realtime-ranking li {
-  padding: 0.8rem 0.5rem; /* 内边距 */
-  color: #fff; /* 文字颜色 */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 底部边框 */
-  font-size: 0.9rem; /* 字体大小 */
-  display: flex; /* 弹性布局 */
-  justify-content: space-between; /* 两端对齐 */
-  align-items: center; /* 垂直居中 */
-  transition: all 0.3s ease; /* 过渡动画 */
-  opacity: 0.7; /* 透明度 */
-}
-
-/* 激活状态的榜单项样式 */
-.realtime-ranking li.active {
-  opacity: 1; /* 不透明 */
-  background: rgba(0, 194, 255, 0.1); /* 背景色 */
-  border-left: 3px solid #00c2ff; /* 左侧边框 */
-}
-
-/* 榜单项目名称样式 */
-.rank-item {
-  font-weight: 500; /* 字体粗细 */
-  color: #00f2ff;
-}
-
-/* 榜单时间样式 */
-.rank-time {
-  color: #00ff88; /* 文字颜色 */
-  font-size: 0.8rem; /* 字体大小 */
-}
-
-/* 地图面板特殊样式 */
 .map-panel {
   flex: 1;
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: none !important; /* 移除阴影边框 */
-  border: none !important; /* 移除边框 */
+  box-shadow: none !important;
+  border: none !important;
+  position: relative;
+  overflow: visible;
 }
 
-/* 移除地图面板的顶部装饰线 */
 .map-panel::before {
   display: none !important;
 }
 
-.map-container {
+/* 关键：放大地图 */
+.map-panel .chart-container {
   flex: 1;
   position: relative;
-  height: 100%;
-  min-height: 600px
-}
-
-/* 地图图表容器 */
-.map-container .chart-container {
-  width: 100% !important;
   height: 100% !important;
-  min-height: 600px;
+  /* 放大地图 */
+  min-height: 550px !important;  /* 从 400px 增大到 550px */
+  max-height: 580px !important;  /* 相应增大 */
 }
 
+.map-panel select {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+}
 
+/* ========== 右侧区域 - 保持不动 ========== */
+.dashboard-right {
+  flex: 0.9;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 240px;
+  min-height: 700px !important;
+  margin-top: 30px !important;
+  height: auto !important;
+}
 
-/* 移动端响应式 */
+.dashboard-right .panel-top {
+  flex: none;
+  min-height: 200px;
+}
+
+.dashboard-right .panel-top .chart-container {
+  height: 160px !important;
+  min-height: 160px;
+}
+
+.dashboard-right .content-panel:nth-child(2) {
+  flex: none;
+  min-height: 150px;
+}
+
+.dashboard-right .realtime-ranking {
+  height: 120px !important;
+  min-height: 120px;
+}
+
+.dashboard-right .content-panel:nth-child(3) {
+  flex: 1;
+  min-height: 200px;
+}
+
+.dashboard-right .content-panel:nth-child(3) .chart-container {
+  height: 160px !important;
+  min-height: 160px;
+}
+
+/* ========== 内容面板通用 ========== */
+.content-panel {
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, #00c2ff, #0066ff);
+}
+
+.content-panel h3 {
+  margin: 0 0 6px 0;
+  color: #00c2ff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.realtime-ranking {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.realtime-ranking ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.realtime-ranking li {
+  padding: 4px 8px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.realtime-ranking li.active {
+  opacity: 1;
+  background: rgba(0, 194, 255, 0.1);
+  border-left: 3px solid #00c2ff;
+}
+
+.rank-item {
+  font-weight: 500;
+  color: #00f2ff;
+}
+
+.rank-time {
+  color: #00ff88;
+  font-size: 11px;
+}
+
 @media (max-width: 1200px) {
   .dashboard {
     flex-direction: column;
+    margin-top: 5px;
+    min-height: auto !important;
   }
-  
   .dashboard-left,
   .dashboard-center,
   .dashboard-right {
     flex: 1;
     min-width: auto;
-    min-height: auto;
+    max-width: none;
+    margin-left: 0;
+    margin-top: 0 !important;
+    width: 100%;
+    min-height: auto !important;
   }
-  
-  .map-container {
-    height: 500px !important;
-    min-height: 500px;
+  .dashboard-center {
+    margin-top: 20px !important;
+    margin-bottom: 20px !important;
+  }
+  .dashboard-left .panel-large .chart-container {
+    height: 400px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-panel {
+    padding: 8px;
+  }
+  .dashboard {
+    gap: 8px;
+    margin-top: 0;
+    min-height: auto !important;
+  }
+  .content-panel {
+    padding: 8px;
+  }
+  .content-panel h3 {
+    font-size: 12px;
+  }
+  .map-panel .chart-container {
+    height: 400px !important;
+    min-height: 400px !important;
   }
 }
 </style>

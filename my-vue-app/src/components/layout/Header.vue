@@ -9,7 +9,7 @@
     <!-- 中间标题和背景 -->
     <div class="header-center fl">
       <div class="header-title">
-        文化遗产图像智能修复系统
+        数字建筑遗产图像智能修复系统
       </div>
       <div class="header-img"></div>
     </div>

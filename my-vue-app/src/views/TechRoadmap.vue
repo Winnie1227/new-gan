@@ -173,352 +173,316 @@ export default {
 </script>
 
 <style scoped>
-/* 主容器样式 - 设置整个技术路线图组件的基本布局 */
+/* 主容器样式 - 整体缩小并下移 */
 .tech-roadmap {
-  min-height: 10vh;  /* 最小高度为整个视口高度，确保占满屏幕 */
-  padding: 2rem;    /* 内边距，使用 rem 单位适配不同屏幕 */
-  margin-top: 30rem; /* 添加这个，让整个组件向下移动 */
+  min-height: auto;
+  padding: 5px;
+  margin-top: 40px;  /* 增加上边距，向下移动避免遮挡 */
+  margin-bottom: 20px;
+  transform: scale(0.95);
+  transform-origin: top center;
 }
 
-/* 科幻风格容器 - 主要的内容区域，具有科技感的背景和边框 */
+/* 科幻风格容器 */
 .sci-fi-container {
-  background: rgba(3, 29, 53, 0.7);  /* 半透明深蓝色背景，营造科技感 */
-  border: 1px solid #00a8ff;         /* 亮蓝色边框 */
-  border-radius: 1rem;             /* 圆角边框 */
-  padding: 10rem;                   /* 内边距 */
-  position: relative;                /* 相对定位，为子元素定位做准备 */
-  overflow: hidden;                  /* 隐藏溢出内容 */
-  box-shadow: 0 0 0.5rem rgba(0, 168, 255, 0.2);  /* 蓝色发光阴影效果 */
-  z-index: 1;                       /* 设置层级，确保在正确层叠上下文中 */
+  background: rgba(3, 29, 53, 0.7);
+  border: 1px solid #00a8ff;
+  border-radius: 10px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 6px rgba(0, 168, 255, 0.2);
+  z-index: 1;
 }
 
 /* 技术标题样式 */
 .tech-header h2 {
-  color: #00d8ff;      /* 亮青色文字 */
-  font-size: 8rem;  /* 字体大小 */
-  margin-bottom: 2rem; /* 底部外边距 */
-  text-align: center;  /* 文字居中 */
+  color: #00d8ff;
+  font-size: 22px;  /* 从20px加大到22px */
+  margin-bottom: 5px;
+  text-align: center;
 }
 
 /* 副标题样式 */
 .tech-subtitle {
-  color: #a0f0ff;     /* 浅蓝色文字 */
-  font-size: 0.18rem;  /* 字体大小 */
-  text-align: center;  /* 文字居中 */
-  margin-bottom: 0.2rem; /* 底部外边距 */
+  color: #a0f0ff;
+  font-size: 13px;  /* 从12px加大到13px */
+  text-align: center;
+  margin-bottom: 8px;
 }
 
-/* 装饰元素容器 - 用于放置装饰性线条和图标 */
+/* 装饰元素容器 */
 .tech-decoration {
-  display: flex;           /* 弹性布局 */
-  align-items: center;     /* 垂直居中 */
-  justify-content: center; /* 水平居中 */
-  margin: 2rem 0;       /* 上下外边距 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
 }
 
-/* 装饰线条 - 渐变色分隔线 */
+/* 装饰线条 */
 .decoration-line {
-  flex: 1;  /* 占据剩余空间 */
-  height: 1px;  /* 线条高度 */
-  background: linear-gradient(90deg, transparent, #00a8ff, transparent);  /* 渐变色背景 */
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00a8ff, transparent);
 }
 
 /* 装饰图标 */
 .tech-decoration i {
   color: #00a8ff;
-  font-size: 5rem;
-  margin: 0 1.5rem;
+  font-size: 16px;  /* 从14px加大到16px */
+  margin: 0 10px;
 }
 
-/* 旋转动画 */
-@keyframes rotate-center {
-  0% {
-    transform: rotate(0);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-
-/* 简单流程容器 - 步骤按钮的布局容器 */
+/* 简单流程容器 */
 .simple-flow {
-  display: flex;           /* 弹性布局 */
-  justify-content: center; /* 水平居中 */
-  align-items: center;     /* 垂直居中 */
-  flex-wrap: wrap;        /* 允许换行 */
-  margin: 0.3rem 0;       /* 上下外边距 */
-  gap: 1rem;            /* 子元素间距 */
-  position: relative;     /* 相对定位 */
-  z-index: 2;            /* 设置层级 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 12px 0;  /* 增加一点间距 */
+  gap: 10px;
+  position: relative;
+  z-index: 2;
 }
 
-/* 流程步骤按钮 - 每个可点击的步骤 */
-/* 流程步骤按钮 - 科幻胶囊设计 */
+/* 流程步骤按钮 */
 .flow-step {
-  background: linear-gradient(135deg, rgba(11, 61, 102, 0.9), rgba(8, 42, 80, 0.9)); /* 渐变背景 */
-  border: none;                           /* 移除边框 */
-  border-radius: 0.5rem;                  /* 大圆角，胶囊形状 */
-  padding: 2rem 4rem;                 /* 调整内边距 */
-  cursor: pointer !important;             /* 手型光标，强制生效 */
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 平滑过渡动画 */
-  min-width: 1.5rem;                      /* 最小宽度 */
-  text-align: center;                     /* 文字居中 */
-  margin: 0.2rem;                         /* 减小外边距 */
-  pointer-events: auto !important;        /* 确保可以点击，强制生效 */
-  position: relative;                     /* 为伪元素定位 */
-  overflow: hidden;                       /* 隐藏溢出的伪元素 */
-  color: #e0f7ff;                        /* 浅蓝色文字 */
-  box-shadow: 
-    0 0.1rem 0.3rem rgba(0, 0, 0, 0.3),  /* 基础阴影 */
-    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* 内阴影增加立体感 */
-}
-
-/* 添加光效边框 */
-.flow-step::before {
-  content: '';                           /* 伪元素内容 */
-  position: absolute;                    /* 绝对定位 */
-  top: 0;                               /* 顶部对齐 */
-  left: 0;                              /* 左侧对齐 */
-  right: 0;                             /* 右侧对齐 */
-  bottom: 0;                            /* 底部对齐 */
-  border-radius: 0.5rem;                /* 匹配按钮圆角 */
-  background: linear-gradient(135deg, rgba(0, 168, 255, 0.3), rgba(0, 216, 255, 0.1)); /* 渐变光效 */
-  opacity: 0;                           /* 默认隐藏 */
-  transition: opacity 0.3s ease;        /* 透明度过渡 */
-  z-index: 1;                           /* 置于内容上层 */
-}
-
-/* 添加扫描线效果 */
-.flow-step::after {
-  content: '';                          /* 伪元素内容 */
-  position: absolute;                   /* 绝对定位 */
-  top: -100%;                          /* 初始位置在顶部以上 */
-  left: 0;                             /* 左侧对齐 */
-  width: 100%;                         /* 全宽 */
-  height: 0.1rem;                      /* 细线高度 */
-  background: linear-gradient(90deg, transparent, #00d8ff, transparent); /* 扫描线渐变 */
-  opacity: 0;                          /* 默认隐藏 */
-  transition: all 0.5s ease;           /* 过渡动画 */
-}
-
-/* 步骤按钮悬停效果 */
-.flow-step:hover {
-  transform: translateY(-0.1rem) scale(1.05); /* 上浮并放大 */
-  box-shadow: 
-    0 0.2rem 0.6rem rgba(0, 168, 255, 0.4), /* 外发光 */
-    inset 0 1px 0 rgba(255, 255, 255, 0.2); /* 增强内阴影 */
-  background: linear-gradient(135deg, rgba(0, 120, 215, 0.9), rgba(0, 80, 160, 0.9)); /* 悬停渐变 */
-}
-
-.flow-step:hover::before {
-  opacity: 1;                          /* 显示光效 */
-}
-
-.flow-step:hover::after {
-  opacity: 0.8;                        /* 显示扫描线 */
-  top: 100%;                          /* 从顶部扫描到底部 */
-}
-
-/* 激活状态 */
-.flow-step.active {
-  background: linear-gradient(135deg, rgba(0, 216, 255, 0.9), rgba(0, 150, 255, 0.9)); /* 激活状态渐变 */
-  box-shadow: 
-    0 0 0.4rem #00d8ff,               /* 强发光 */
-    0 0.2rem 0.8rem rgba(0, 216, 255, 0.6); /* 扩散阴影 */
-  color: #000;                         /* 深色文字提高可读性 */
-  transform: scale(1.08);              /* 轻微放大 */
-}
-
-.flow-step.active::before {
-  opacity: 0.6;                        /* 增强光效 */
-  animation: pulseGlow 2s infinite;    /* 脉冲光效动画 */
-}
-
-/* 脉冲光效动画 */
-@keyframes pulseGlow {
-  0%, 100% { 
-    opacity: 0.6; 
-    background: linear-gradient(135deg, rgba(0, 216, 255, 0.4), rgba(0, 150, 255, 0.2));
-  }
-  50% { 
-    opacity: 0.9; 
-    background: linear-gradient(135deg, rgba(0, 216, 255, 0.7), rgba(0, 150, 255, 0.5));
-  }
+  background: linear-gradient(135deg, rgba(11, 61, 102, 0.9), rgba(8, 42, 80, 0.9));
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;  /* 稍微加大内边距 */
+  cursor: pointer !important;
+  transition: all 0.3s ease;
+  min-width: 75px;
+  text-align: center;
+  margin: 2px;
+  pointer-events: auto !important;
+  position: relative;
+  overflow: hidden;
+  color: #e0f7ff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* 步骤数字样式 */
 .step-number {
-  font-size: 0.2rem;                   /* 调整字体大小 */
-  font-weight: bold;                   /* 粗体 */
-  color: #00d8ff;                      /* 亮青色 */
-  position: relative;                  /* 相对定位 */
-  z-index: 2;                          /* 置于光效上层 */
-  text-shadow: 0 0 0.1rem rgba(0, 216, 255, 0.5); /* 文字发光 */
+  font-size: 12px;  /* 从11px加大到12px */
+  font-weight: bold;
+  color: #00d8ff;
+  position: relative;
+  z-index: 2;
 }
 
 /* 步骤名称样式 */
 .step-name {
-  font-size: 0.16rem;                  /* 调整字体大小 */
-  color: #ffffff;                      /* 白色文字 */
-  position: relative;                  /* 相对定位 */
-  z-index: 2;                          /* 置于光效上层 */
-  text-shadow: 0 0 0.1rem rgba(255, 255, 255, 0.3); /* 文字微光 */
+  font-size: 12px;  /* 从11px加大到12px */
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
 }
 
-/* 原始图片容器 - 显示技术路线原图 */
+/* 原始图片容器 */
 .original-image {
-  margin-top: 5rem;                  /* 顶部外边距 */
-  border: 1px solid #0b3d66;          /* 边框 */
-  padding: 1rem;                     /* 内边距 */
-  background: rgba(3, 29, 53, 0.8);   /* 半透明背景 */
-  max-width: 60%;                      /* 最大宽度 */
-  margin-left: auto;                   /* 自动左外边距 */
-  margin-right: auto;                  /* 自动右外边距，实现居中 */
+  margin-top: 15px;  /* 增加上边距 */
+  border: 1px solid #0b3d66;
+  padding: 10px;
+  background: rgba(3, 29, 53, 0.8);
+  max-width: 65%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* 原始图片样式 */
 .original-image img {
-  max-width: 100%;  /* 最大宽度为容器宽度 */
-  display: block;   /* 块级显示 */
-  margin: 0 auto;   /* 水平居中 */
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
 }
 
 /* 图片标题样式 */
 .image-caption {
-  font-size: 5rem;  /* 字体大小 */
-  color: #00d8ff;      /* 亮青色 */
-  text-align: center;  /* 文字居中 */
-  margin-top: 5rem;  /* 顶部外边距 */
+  font-size: 12px;  /* 从11px加大到12px */
+  color: #00d8ff;
+  text-align: center;
+  margin-top: 8px;
 }
 
-/* 动态内容区域样式 - 点击步骤后显示详细内容的容器 */
+/* 动态内容区域样式 */
 .dynamic-content-container {
-  /* 保证显示的基础属性 */
-  display: block !important;        /* 块级显示，强制生效 */
-  opacity: 1 !important;           /* 完全不透明，强制生效 */
-  visibility: visible !important;  /* 可见，强制生效 */
-  
-  /* 恢复原有样式 */
-  margin-top: 0.3rem;                  /* 顶部外边距 */
-  border: 1px solid #0b3d66;          /* 边框 */
-  padding: 2rem;                     /* 内边距 */
-  background: rgba(3, 29, 53, 0.7);   /* 半透明背景 */
-  border-radius: 0.08rem;              /* 圆角 */
-  animation: fadeIn 0.5s ease;         /* 淡入动画 */
-  position: relative;                  /* 相对定位 */
-  z-index: 10;                        /* 设置较高层级 */
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  margin-top: 15px;
+  border: 1px solid #0b3d66;
+  padding: 15px;
+  background: rgba(3, 29, 53, 0.7);
+  border-radius: 6px;
+  animation: fadeIn 0.4s ease;
+  position: relative;
+  z-index: 10;
 }
 
 /* 动态内容标题 */
 .dynamic-content-container h4 {
-  color: #00d8ff;          /* 亮青色 */
-  font-size: 5rem;      /* 字体大小 */
-  margin-bottom: 1.5rem;  /* 底部外边距 */
-  text-align: center;      /* 文字居中 */
-  border-bottom: 1px solid #0b3d66;  /* 底部边框 */
-  padding-bottom: 1rem;  /* 底部内边距 */
+  color: #00d8ff;
+  font-size: 18px;  /* 从16px加大到18px */
+  margin-bottom: 12px;
+  text-align: center;
+  border-bottom: 1px solid #0b3d66;
+  padding-bottom: 8px;
 }
 
-/* 动态内容布局 - 图片和列表的排列 */
+/* 动态内容布局 */
 .dynamic-content {
-  display: flex;     /* 弹性布局 */
-  gap: 3rem;       /* 子元素间距 */
-  margin-top: 5rem; /* 顶部外边距 */
+  display: flex;
+  gap: 18px;
+  margin-top: 10px;
 }
 
 /* 详情图片区域 */
 .detail-image {
-  width: 45%;  /* 宽度占比45% */
+  width: 45%;
 }
 
 /* 详情图片 */
 .detail-image img {
-  width: 100%;                /* 宽度充满容器 */
-  border: 1px solid #0b3d66;  /* 边框 */
-  border-radius: 0.05rem;     /* 圆角 */
+  width: 100%;
+  border: 1px solid #0b3d66;
+  border-radius: 4px;
 }
 
 /* 详情列表区域 */
 .detail-list {
-  width: 55%;  /* 宽度占比55% */
+  width: 55%;
 }
 
 /* 详情列表 */
 .detail-list ul {
-  list-style: none;  /* 移除列表默认样式 */
-  padding: 0;        /* 移除内边距 */
-  margin: 0;         /* 移除外边距 */
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 /* 详情列表项 */
 .detail-list li {
-  padding: 1rem 0;                     /* 上下内边距 */
-  line-height: 4;                      /* 行高 */
-  font-size: 1.6rem;                    /* 字体大小 */
-  color: #a0f0ff;                        /* 浅蓝色文字 */
-  display: flex;                         /* 弹性布局 */
-  align-items: flex-start;               /* 顶部对齐 */
-  border-bottom: 1px dashed rgba(11, 61, 102, 0.5);  /* 底部虚线边框 */
+  padding: 8px 0;  /* 从6px加大到8px */
+  line-height: 1.5;
+  font-size: 13px;  /* 从11px加大到13px */
+  color: #a0f0ff;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px dashed rgba(11, 61, 102, 0.5);
 }
 
 /* 最后一个列表项 */
 .detail-list li:last-child {
-  border-bottom: none;  /* 移除底部边框 */
+  border-bottom: none;
 }
 
 /* 列表项图标 */
 .detail-list i {
-  margin-right: 1rem;  /* 右外边距 */
-  color: #00f5d4;        /* 青绿色 */
-  font-size: 1.4rem;    /* 图标大小 */
-  min-width: 2rem;     /* 最小宽度 */
-  text-align: center;    /* 文字居中 */
-  margin-top: 0.03rem;   /* 顶部外边距，微调垂直对齐 */
+  margin-right: 8px;
+  color: #00f5d4;
+  font-size: 13px;  /* 从11px加大到13px */
+  min-width: 18px;
+  text-align: center;
+  margin-top: 2px;
 }
 
 /* 返回按钮 */
 .back-button {
-  background: none;                  /* 透明背景 */
-  border: 1px solid #00a8ff;        /* 蓝色边框 */
-  color: #00a8ff;                   /* 蓝色文字 */
-  font-size: 1.6rem;               /* 字体大小 */
-  cursor: pointer;                  /* 手型光标 */
-  margin-top: 0.15rem;              /* 顶部外边距 */
-  padding: 0.8rem 0.2rem;          /* 内边距 */
-  border-radius: 0.05rem;           /* 圆角 */
-  transition: all 0.3s;             /* 过渡动画 */
-  display: block;                   /* 块级显示 */
-  margin-left: auto;                /* 自动左外边距 */
-  margin-right: auto;               /* 自动右外边距，实现居中 */
+  background: none;
+  border: 1px solid #00a8ff;
+  color: #00a8ff;
+  font-size: 12px;  /* 从11px加大到12px */
+  cursor: pointer;
+  margin-top: 15px;
+  padding: 5px 14px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* 返回按钮悬停效果 */
 .back-button:hover {
-  background: rgba(0,168,255,0.2);  /* 半透明蓝色背景 */
-  color: #00d8ff;                   /* 亮青色文字 */
+  background: rgba(0, 168, 255, 0.2);
+  color: #00d8ff;
 }
 
 /* 淡入动画定义 */
 @keyframes fadeIn {
-  from { 
-    opacity: 0;                    /* 完全透明 */
-    transform: translateY(10px);   /* 向下偏移 */
+  from {
+    opacity: 0;
+    transform: translateY(5px);
   }
-  to { 
-    opacity: 1;                    /* 完全不透明 */
-    transform: translateY(0);      /* 回到原位 */
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* 响应式调整 - 针对小屏幕设备的样式优化 */
+/* 响应式调整 */
 @media (max-width: 768px) {
-  .dynamic-content {
-    flex-direction: column;  /* 改为垂直排列 */
+  .tech-roadmap {
+    transform: scale(0.94);
+    margin-top: 30px;  /* 手机端也向下移动 */
+    padding: 3px;
   }
+  
+  .sci-fi-container {
+    padding: 10px;
+  }
+  
+  .tech-header h2 {
+    font-size: 20px;
+  }
+  
+  .tech-subtitle {
+    font-size: 12px;
+  }
+  
+  .flow-step {
+    padding: 5px 12px;
+    min-width: 65px;
+  }
+  
+  .step-number,
+  .step-name {
+    font-size: 11px;
+  }
+  
+  .dynamic-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
   .detail-image,
   .detail-list {
-    width: 100%;  /* 宽度充满容器 */
+    width: 100%;
+  }
+  
+  .original-image {
+    max-width: 90%;
+    padding: 8px;
+  }
+  
+  .image-caption {
+    font-size: 11px;
+  }
+  
+  .dynamic-content-container h4 {
+    font-size: 16px;
+  }
+  
+  .detail-list li {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+  
+  .back-button {
+    font-size: 11px;
+    padding: 4px 12px;
   }
 }
 </style>

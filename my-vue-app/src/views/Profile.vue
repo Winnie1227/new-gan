@@ -36,54 +36,56 @@
     </div>
 
     <!-- 修改头像和昵称的表单模态框 -->
-<div v-if="showEditForm" class="profile-edit-modal">
-  <!-- 遮罩层，点击空白关闭 -->
-  <div class="modal-overlay" @click.self="showEditForm = false">
-    <!-- 模态内容 -->
-    <div class="modal-content" @click.stop>
-      <div class="modal-header">
-        <h3>修改个人信息</h3>
-        <button class="close-btn" @click="showEditForm = false">×</button>
-      </div>
-
-      <div class="form-content">
-        <!-- 头像上传 -->
-        <div class="form-group">
-          <label for="newAvatar">新头像:</label>
-          <div class="avatar-upload">
-            <img
-              :src="previewAvatar || userData.avatar"
-              alt="头像预览"
-              class="avatar-preview"
-            />
-            <input
-              type="file"
-              id="newAvatar"
-              accept="image/*"
-              @change="handleAvatarChange"
-            />
+    <div v-if="showEditForm" class="profile-edit-modal">
+      <div class="modal-overlay" @click.self="showEditForm = false">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>修改个人信息</h3>
+            <button class="close-btn" @click="showEditForm = false">×</button>
           </div>
-        </div>
 
-        <!-- 昵称修改 -->
-        <div class="form-group">
-          <label for="newName">新昵称:</label>
-          <input
-            type="text"
-            id="newName"
-            v-model="newName"
-            placeholder="请输入新昵称"
-          />
-        </div>
+          <div class="form-content">
+            <!-- 头像上传 -->
+            <div class="form-group">
+              <label>新头像:</label>
+              <div class="avatar-upload">
+                <img
+                  :src="previewAvatar || userData.avatar"
+                  alt="头像预览"
+                  class="avatar-preview"
+                />
+                <button class="upload-btn" @click="triggerFileInput">
+                  <i class="fas fa-upload"></i> 选择图片
+                </button>
+                <input
+                  type="file"
+                  ref="avatarInput"
+                  accept="image/*"
+                  style="display: none"
+                  @change="handleAvatarChange"
+                />
+              </div>
+            </div>
 
-        <div class="form-actions">
-          <button class="save-btn" @click="saveChanges">保存</button>
-          <button class="cancel-btn" @click="showEditForm = false">取消</button>
+            <!-- 昵称修改 -->
+            <div class="form-group">
+              <label>新昵称:</label>
+              <input
+                type="text"
+                v-model="newName"
+                placeholder="请输入新昵称"
+                class="name-input"
+              />
+            </div>
+
+            <div class="form-actions">
+              <button class="save-btn" @click="saveChanges">保存</button>
+              <button class="cancel-btn" @click="showEditForm = false">取消</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
     <!-- 基本信息卡片 -->
     <div class="profile-card">
@@ -186,7 +188,7 @@
 
     <!-- 项目详情模态框 -->
     <div v-if="selectedProject" class="project-modal" @click.self="selectedProject = null">
-      <div class="modal-content">
+      <div class="modal-content project-detail-modal">
         <div class="modal-header">
           <h3 class="modal-title">{{ selectedProject.title }}</h3>
           <button class="close-btn" @click="selectedProject = null">×</button>
@@ -225,7 +227,7 @@
           
           <div class="project-description">
             <h4>项目描述</h4>
-            <p>这是一个重要的文化遗产修复项目，采用了先进的AI技术和传统修复工艺相结合的方法，确保了修复效果的真实性和艺术性。</p>
+            <p>这是一个重要的数字建筑遗产修复项目，采用了先进的AI技术和传统修复工艺相结合的方法，确保了修复效果的真实性和艺术性。</p>
           </div>
         </div>
         
@@ -245,31 +247,23 @@ export default {
   name: 'ProfileCenter',
   data() {
     return {
-      // 控制编辑表单显示
       showEditForm: false,
-      // 选中的项目
       selectedProject: null,
-      // 表单数据
-      formData: {
-        name: '',
-        avatar: null
-      },
-      // 头像预览
+      newName: '',
       previewAvatar: null,
-      // 用户数据
       userData: {
         avatar: '/images/logo.png',
         name: '修复大师',
-        title: '高级图像修复师 | 文化遗产保护中心',
+        title: '高级图像修复师 | 数字建筑遗产保护中心',
         stats: {
           repairCount: 256,
           favoriteProjects: 12,
           satisfaction: '98%'
         },
         basicInfo: {
-          username: '宝宝',
+          username: '修复师',
           position: '高级图像修复师',
-          organization: '文化遗产保护中心 | 数字修复部门',
+          organization: '数字建筑遗产保护中心 | 数字修复部门',
           expertise: '古画修复、老照片修复、文物数字化',
           joinDate: '2020年5月'
         },
@@ -281,29 +275,31 @@ export default {
         ],
         projects: [
           {
-            title: '江门侨乡老照片修复',
+            title: '侨乡老照片修复',
             date: '2023.08.15',
             tags: ['AI修复', '色彩还原'],
             image: '/images/江门.png'
           },
           {
-            title: '清代书画数字化修复',
+            title: '横州市云表镇伏波庙修复',
             date: '2023.07.22',
             tags: ['细节增强', '纹理修复'],
-            image: '/images/书画.png'
+            image: '/images/广西1.png'
           },
           {
-            title: '民国档案修复工程',
+            title: '百色市西林岑氏家族建筑群修复',
             date: '2023.06.30',
-            tags: ['去污处理', '文字增强'],
-            image: '/images/文件.png'
+            tags: ['去污处理', '细节增强'],
+            image: '/images/广西2.png'
           }
         ]
       }
     }
   },
-    methods: {
-    // 上传头像
+  methods: {
+    triggerFileInput() {
+      this.$refs.avatarInput.click();
+    },
     handleAvatarChange(event) {
       const file = event.target.files[0];
       if (file) {
@@ -314,278 +310,264 @@ export default {
         reader.readAsDataURL(file);
       }
     },
-
-    // 保存更改
     saveChanges() {
-      console.log("正在保存...");
-
-      // ✅ 检查昵称是否有输入
       if (this.newName && this.newName.trim() !== "") {
         this.userData.name = this.newName.trim();
       }
-
-      // ✅ 如果上传了头像，则更新
       if (this.previewAvatar) {
         this.userData.avatar = this.previewAvatar;
       }
-
-      // ✅ 关闭弹窗并重置状态
       this.showEditForm = false;
       this.newName = "";
       this.previewAvatar = null;
-
       alert("保存成功！");
     },
-
-    // 头像加载失败时替换默认图
     handleImageError(event) {
-      event.target.src = "https://via.placeholder.com/80?text=No+Image";
+      event.target.src = "https://via.placeholder.com/120?text=Avatar";
     },
-  },
+    handleProjectImageError(event) {
+      event.target.src = "https://via.placeholder.com/300x200?text=Project+Image";
+    }
+  }
 };
 </script>
 
 <style scoped>
-/* 个人中心样式 */
+/* 个人中心样式 - 使用标准px单位 */
 .profile-container {
-    max-width: 100%;
-    padding: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 40px 80px;
     color: #fff;
-    overflow: auto;
-     min-height: 110vh; /* 新增：确保容器有足够高度 */
+    min-height: calc(100vh - 100px);
 }
 
+/* 用户信息头部 */
 .profile-header {
     text-align: center;
-    margin-bottom: 4rem;
-    padding-bottom: 0.3rem;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
     border-bottom: 1px solid rgba(0, 216, 255, 0.3);
 }
 
+.avatar-section {
+    cursor: pointer;
+    display: inline-block;
+}
+
 .profile-avatar {
-    width: 25rem;
-    height: 25rem;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    margin: 10rem auto 2rem;
-    border: 2px solid #00d8ff;
-    box-shadow: 0 0 0.3rem rgba(0, 216, 255, 0.5);
+    margin-bottom: 15px;
+    border: 3px solid #00d8ff;
+    box-shadow: 0 0 20px rgba(0, 216, 255, 0.5);
+    transition: transform 0.3s ease;
+}
+
+.profile-avatar:hover {
+    transform: scale(1.05);
 }
 
 .profile-name {
-    font-size: 0.3rem;
+    font-size: 28px;
     color: #00d8ff;
-    margin-bottom: 0.1rem;
-    text-shadow: 0 0 0.1rem rgba(0, 216, 255, 0.3);
+    margin-bottom: 8px;
+    cursor: pointer;
+    text-shadow: 0 0 10px rgba(0, 216, 255, 0.5);
+}
+
+.profile-name:hover {
+    text-decoration: underline;
 }
 
 .profile-title {
-    font-size: 0.18rem;
+    font-size: 16px;
     color: #a0d7ff;
-    margin-bottom: 0.3rem;
+    margin-bottom: 20px;
 }
 
+/* 统计数据 */
 .profile-stats {
     display: flex;
     justify-content: center;
-    gap: 0.4rem;
-    margin-top: 0.3rem;
+    gap: 30px;
+    margin-top: 20px;
 }
 
 .stat-item {
     text-align: center;
-    padding: 1rem 3rem;
+    padding: 12px 24px;
     background: rgba(11, 61, 102, 0.5);
-    border-radius: 0.1rem;
-    min-width: 1rem;
+    border-radius: 12px;
+    min-width: 100px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 216, 255, 0.3);
 }
 
 .stat-value {
-    font-size: 0.24rem;
+    font-size: 24px;
     font-weight: bold;
     color: #00d8ff;
 }
 
 .stat-label {
-    font-size: 0.14rem;
+    font-size: 14px;
     color: #a0d7ff;
+    margin-top: 5px;
 }
 
 /* 卡片样式 */
 .profile-card {
     background: rgba(2, 22, 45, 0.6);
-    border: 1px solid #217093;
-    border-radius: 0.1rem;
-    padding: 3rem;
-    margin-bottom: 5rem;
-    box-shadow: 0 0 0.3rem rgba(0, 216, 255, 0.2) inset;
-    position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
-    overflow: auto;
+    border: 1px solid rgba(0, 216, 255, 0.3);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
 }
 
-.profile-card:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(0, 216, 255, 0.1) 0%, transparent 50%);
-    z-index: 0;
+.profile-card:hover {
+    border-color: rgba(0, 216, 255, 0.6);
+    box-shadow: 0 0 20px rgba(0, 216, 255, 0.2);
 }
 
 .card-title {
-    font-size: 0.22rem;
+    font-size: 20px;
     color: #00d8ff;
-    margin-bottom: 2rem;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    position: relative;
-    z-index: 1;
+    gap: 10px;
+    border-left: 3px solid #00d8ff;
+    padding-left: 15px;
 }
 
 .card-title i {
-    margin-right: 8rem;
-    font-size: 0.2rem;
+    font-size: 20px;
+}
+
+/* 基本信息列表 */
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .info-item {
     display: flex;
-    margin-bottom: 1.5rem;
-    position: relative;
-    flex-direction: row; /* 确保横向排列 */
-    align-items: center; /* 垂直居中 */
-    z-index: 1;
+    align-items: baseline;
+    flex-wrap: wrap;
 }
 
 .info-label {
-    width: 1.2rem;
-    font-size: 0.16rem;
+    width: 100px;
+    font-size: 14px;
     color: #59ebe8;
-    text-align: left; /* 左对齐 */
-    white-space: nowrap; /* 防止文字换行 */
-    margin-right: 25rem; /* 添加右边距 */
+    font-weight: 500;
 }
 
 .info-value {
     flex: 1;
-    font-size: 1.6rem;
-    color: #d0e8ff;
+    font-size: 15px;
+    color: #e0e8ff;
 }
 
-/* 技能条样式 */
-.skill-bar {
-    height: 2rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 0.04rem;
-    margin-top: 0.5rem;
-    width: 100%; 
-}
-
-/* 技能名称样式 */
-.skill-item {
+/* 技能列表 */
+.skills-list {
     display: flex;
-    align-items: center;
-    width: 100%; /* 确保技能项宽度为100% */
-    margin-bottom: rem;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.skill-item {
+    width: 100%;
+}
+
+.skill-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
 }
 
 .skill-name {
-    color: #e0f7ff;  
+    color: #e0f7ff;
     font-weight: 500;
-    margin-right: 0.5rem; /* 添加右边距 */
+    font-size: 14px;
+}
+
+.skill-percentage {
+    color: #00d8ff;
+    font-size: 14px;
+}
+
+.skill-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 .skill-progress {
-    height: 2rem; /* 增加高度使进度条更粗 */
-    background: linear-gradient(to right, #01cfff, #0066ff);
-    border-radius: 4rem;
-    position: relative;
+    height: 100%;
+    background: linear-gradient(to right, #00d8ff, #0066ff);
+    border-radius: 4px;
     transition: width 0.3s ease;
 }
 
-.skill-progress:after {
-    content: attr(style);
-    position: absolute;
-    right: 5rem;
-    top: -6rem;
-    font-size: 0.12rem;
+/* 近期项目区域 */
+.recent-projects-container {
+    margin-top: 10px;
+}
+
+.section-title {
+    color: #00d8ff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 24px;
+    border-left: 3px solid #00d8ff;
+    padding-left: 15px;
+}
+
+.section-title i {
+    font-size: 22px;
     color: #00d8ff;
 }
-
-/* 近期项目整体容器 */
-.recent-projects-container {
-    margin-top: 0.5rem;
-    padding: 0.3rem;
-    background: rgba(234, 228, 228, 0.05);
-    border-radius: 0.3rem;
-    overflow: auto;
-}
-
-.recent-projects-container h3 {
-    color: #00c2ff;
-    font-size: 5rem;
-    margin-bottom: 0.2rem;
-    padding-bottom: 0.1rem;
-    border-bottom: 1px solid rgba(0, 194, 255, 0.3);
-}
-
-/* --- 近期项目标题颜色修复 --- */
-.section-title {
-  color: #40a7e6 !important;  /* 亮蓝色 */
-  display: flex;
-  align-items: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-/* --- 图标颜色修复 --- */
-.section-title i {
-  color: #40a7e6 !important;  /* 同样的亮蓝色 */
-  margin-right: 0.5rem;
-  font-size: 2.2rem;
-  text-shadow: 0 0 8px rgba(0, 170, 255, 0.6);
-  padding-left: 3rem;
-}
-
-/* --- 近期项目标题文字颜色 --- */
-.section-title .title-text {
-  color: #40a7e6 !important;
-  text-shadow: 0 0 5px rgba(0, 207, 255, 0.6);
-  padding-left: 8rem;
-}
-
 
 /* 项目网格布局 */
 .project-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0.3rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
 }
 
 /* 单个项目卡片 */
 .project-card {
     background: rgba(0, 102, 255, 0.1);
     border: 1px solid rgba(0, 194, 255, 0.2);
-    border-radius: 0.2rem;
+    border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
     cursor: pointer;
+    backdrop-filter: blur(5px);
 }
 
 .project-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 194, 255, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 194, 255, 0.2);
     border-color: #00c2ff;
 }
 
 /* 项目图片区域 */
 .project-image-container {
-    height: 160px;
+    height: 180px;
     overflow: hidden;
+    position: relative;
 }
 
 .project-image-container img {
@@ -599,15 +581,39 @@ export default {
     transform: scale(1.05);
 }
 
-/* 项目内容区域 */
-.project-content {
-    padding: 0.15rem;
+.project-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.project-content h4 {
+.project-card:hover .project-overlay {
+    opacity: 1;
+}
+
+.project-overlay i {
+    font-size: 32px;
+    color: #00c2ff;
+}
+
+/* 项目内容区域 */
+.project-content {
+    padding: 16px;
+}
+
+.project-title {
     color: #fff;
-    font-size: 0.18rem;
-    margin: 0 0 0.1rem 0;
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -617,24 +623,30 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.14rem;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .project-date {
     color: #8eb6f5;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .project-tags {
     display: flex;
-    gap: 0.1rem;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
-.project-tags span {
+.project-tag {
     background: rgba(0, 194, 255, 0.2);
     color: #00c2ff;
-    padding: 0.02rem 0.08rem;
-    border-radius: 0.1rem;
-    font-size: 0.12rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
 }
 
 /* 模态框样式 */
@@ -644,54 +656,53 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(5px);
     z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    animation: fadeIn 0.3s ease;
+    padding: 20px;
 }
 
-.modal-content {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    border: 3px solid #00c2ff;
-    border-radius: 15px;
+.project-detail-modal {
+    background: linear-gradient(135deg, #1a2a4a 0%, #0f1a2e 100%);
+    border: 2px solid #00c2ff;
+    border-radius: 16px;
     width: 100%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 0 40px rgba(0, 194, 255, 0.5);
-    animation: slideUp 0.3s ease;
+    box-shadow: 0 0 40px rgba(0, 194, 255, 0.4);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5rem;
+    padding: 20px 24px;
     border-bottom: 1px solid rgba(0, 194, 255, 0.3);
-    background: rgba(0, 0, 0, 0.2);
 }
 
 .modal-title {
     color: #00c2ff;
     margin: 0;
-    font-size: 5rem;
-    text-shadow: 0 0 10px rgba(0, 194, 255, 0.5);
+    font-size: 20px;
 }
 
 .close-btn {
     background: #ff4757;
     color: white;
     border: none;
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    font-size: 1.3rem;
+    font-size: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-btn:hover {
@@ -700,41 +711,41 @@ export default {
 }
 
 .modal-body {
-    padding: 1.5rem;
+    padding: 24px;
 }
 
 .project-image {
-    margin-bottom: 1rem;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .project-image img {
     width: 100%;
     max-height: 300px;
     object-fit: cover;
-    border-radius: 8px;
-    border: 2px solid #00c2ff;
 }
 
 .project-details {
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
 .detail-item {
     display: flex;
     align-items: center;
-    margin-bottom: 0.8rem;
+    gap: 12px;
+    margin-bottom: 12px;
     color: #e0f7fa;
+    flex-wrap: wrap;
 }
 
 .detail-item i {
     color: #00c2ff;
-    margin-right: 0.5rem;
-    font-size: 1.1rem;
+    font-size: 16px;
 }
 
 .detail-label {
     font-weight: bold;
-    margin-right: 0.5rem;
     color: #4fc3f7;
 }
 
@@ -744,51 +755,48 @@ export default {
 
 .tags-container {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 .detail-tag {
     background: linear-gradient(45deg, #00c2ff, #0066ff);
     color: white;
-    padding: 0.3rem 0.8rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 194, 255, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
 }
 
 .project-description h4 {
     color: #00c2ff;
-    margin-bottom: 0.8rem;
-    font-size: 1.2rem;
+    margin-bottom: 10px;
+    font-size: 16px;
 }
 
 .project-description p {
     color: #e0f7fa;
     line-height: 1.6;
-    font-size: 0.9rem;
+    font-size: 14px;
 }
 
 .modal-footer {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
-    padding: 1.5rem;
+    gap: 12px;
+    padding: 16px 24px;
     border-top: 1px solid rgba(0, 194, 255, 0.3);
-    background: rgba(0, 0, 0, 0.2);
 }
 
 .action-btn {
-    padding: 0.75rem 1.5rem;
+    padding: 10px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 14px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .action-btn.secondary {
@@ -817,39 +825,52 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5); /* 调整透明度 */
+    z-index: 1500;
 }
 
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 80%;
-    padding: 50rem;
+    height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    z-index: 1;
     display: flex;
     justify-content: center;
-    align-items: cente
+    align-items: center;
+}
+
+.profile-edit-modal .modal-content {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border: 2px solid #00c2ff;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    padding: 0;
+    box-shadow: 0 0 40px rgba(0, 194, 255, 0.4);
+}
+
+.profile-edit-modal .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0, 194, 255, 0.3);
+}
+
+.profile-edit-modal .modal-header h3 {
+    color: #00c2ff;
+    margin: 0;
+    font-size: 20px;
 }
 
 .form-content {
+    padding: 24px;
     color: white;
 }
 
 .form-group {
-    margin-bottom: 8rem;
+    margin-bottom: 24px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5rem;
+    margin-bottom: 10px;
     color: #00c2ff;
     font-weight: bold;
 }
@@ -857,7 +878,7 @@ export default {
 .avatar-upload {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
@@ -869,18 +890,17 @@ export default {
     object-fit: cover;
 }
 
-.avatar-upload input[type="file"] {
-    display: none;
-}
-
 .upload-btn {
     background: linear-gradient(to right, #01cfff, #0066ff);
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 8px 16px;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .upload-btn:hover {
@@ -888,35 +908,40 @@ export default {
     box-shadow: 0 5px 15px rgba(1, 207, 255, 0.4);
 }
 
-.form-group input[type="text"] {
+.name-input {
     width: 100%;
-    padding: 0.75rem;
+    padding: 10px 12px;
     border: 1px solid #00c2ff;
-    border-radius: 5px;
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.1);
     color: white;
-    font-size: 1rem;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
-.form-group input[type="text"]:focus {
+.name-input:focus {
     outline: none;
     border-color: #4fc3f7;
     box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
 }
 
+.name-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
 .form-actions {
     display: flex;
-    gap: 1rem;
+    gap: 12px;
     justify-content: flex-end;
-    margin-top: 2rem;
+    margin-top: 24px;
 }
 
 .cancel-btn, .save-btn {
-    padding: 0.75rem 1.5rem;
+    padding: 10px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 14px;
     transition: all 0.3s ease;
 }
 
@@ -939,51 +964,47 @@ export default {
     box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4);
 }
 
-/* 动画 */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
+    .profile-container {
+        padding: 20px;
+    }
+    
     .profile-stats {
         flex-direction: column;
-        gap: 0.2rem;
+        gap: 12px;
+        align-items: center;
     }
-
-    .profile-card {
-        width: 100%; /* 在大屏幕上宽度为100% */
+    
+    .stat-item {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-name {
+        font-size: 24px;
+    }
+    
+    .profile-title {
+        font-size: 14px;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .info-label {
+        width: auto;
     }
     
     .project-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .modal-content {
-        margin: 1rem;
-        padding: 1rem;
-        z-index: 2;
-    }
-    
-    .avatar-upload {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .form-actions {
-        flex-direction: column;
     }
     
     .modal-footer {
@@ -993,6 +1014,19 @@ export default {
     .action-btn {
         width: 100%;
         justify-content: center;
+    }
+    
+    .avatar-upload {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .cancel-btn, .save-btn {
+        width: 100%;
     }
 }
 </style>

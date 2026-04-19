@@ -17,7 +17,7 @@
         </div>
       </div>
 
-      <!-- 中间地图 - 保持 -->
+      <!-- 中间地图  -->
       <div class="dashboard-center">
         <div class="content-panel map-panel">
           <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9">
@@ -25,6 +25,7 @@
               style="width:120px;height:28px;background:rgba(0,0,0,.5);color:#00c2ff;border:1px solid #00c2ff;border-radius:4px;padding-left:6px">
               <option value="guangxi">广西</option>
               <option value="fujian">福建</option>
+              <option value="guangdong">广东</option>
             </select>
           </div>
           <!-- 地图高度稍微减小 -->
@@ -266,53 +267,84 @@ const getSimpleMapOption = () => {
         /* ===== 新增 2 ===== */
     // 动态注册地图
     const registerMap = async (adcode) => {
-      if (echarts.getMap(adcode)) return;   // 已注册过
-      const res = await fetch(`/geo/${adcode}.json`);
-      const geo = await res.json();
-      echarts.registerMap(adcode, geo);
-    };
+    if (echarts.getMap(adcode)) return;
+    const res = await fetch(`/src/geo/${adcode}.json`);
+    const geo = await res.json();
+    echarts.registerMap(adcode, geo);
+  };
 
-
-    // 新的地图配置函数（替换原来的 getMapOption）
     // 地图配置（动态地图名）
-    const getMapOption = () => ({
-      title: { show: false },
-      tooltip: { trigger: 'item' },
-      visualMap: {
-        type: 'continuous',
-        min: 0,
-        max: 500,
-        text: ['高', '低'],
-        calculable: true,
-        inRange: { color: ['#4575b4', '#74add1', '#abd9e9', '#ffffbf', '#fdae61', '#d73027'] },
-        textStyle: { color: '#fff' },
-        left: 'left', bottom: 'bottom'
-      },
-      series: [{
-        name: '修复数量',
-        type: 'map',
-        map: currentMap.value,   // 关键：动态切换
-        roam: true,
-        emphasis: { label: { show: true, color: '#fff' } },
-        data: [
-          /* 示例数据：name 必须跟 GeoJSON 里的市/县名一致 */
-          { name: '南宁市', value: 220 },
-          { name: '横州市', value: 100 },
-          { name: '崇左市', value: 95 },
-          { name: '柳州市', value: 80 },
-          { name: '贵港市', value: 80 },
-          { name: '钦州市', value: 77 },
-          { name: '百色市', value: 70 },
-          { name: '桂林市', value: 60 },
-          { name: '泉州市', value: 420 },
-          { name: '厦门市', value: 140 },
-          { name: '龙岩市', value: 120 },
-          { name: '福州市', value: 90 },
-          { name: '漳州市', value: 70 }
-          
-        ]
-      }]
-    })
+ const getMapOption = () => {
+  // 根据当前地图返回对应的数据
+  let mapData = []
+  if (currentMap.value === 'guangxi') {
+    mapData = [
+      { name: '南宁市', value: 220 },
+      { name: '横州市', value: 100 },
+      { name: '崇左市', value: 95 },
+      { name: '柳州市', value: 80 },
+      { name: '贵港市', value: 80 },
+      { name: '钦州市', value: 77 },
+      { name: '百色市', value: 70 },
+      { name: '桂林市', value: 60 }
+    ]
+  } else if (currentMap.value === 'fujian') {
+    mapData = [
+      { name: '泉州市', value: 420 },
+      { name: '厦门市', value: 140 },
+      { name: '龙岩市', value: 120 },
+      { name: '福州市', value: 90 },
+      { name: '漳州市', value: 70 }
+    ]
+  } else if (currentMap.value === 'guangdong') {
+    mapData = [
+      { name: '广州市', value: 350 },
+      { name: '深圳市', value: 420 },
+      { name: '佛山市', value: 280 },
+      { name: '东莞市', value: 250 },
+      { name: '惠州市', value: 180 },
+      { name: '中山市', value: 150 },
+      { name: '珠海市', value: 120 },
+      { name: '江门市', value: 110 },
+      { name: '肇庆市', value: 90 },
+      { name: '汕头市', value: 85 },
+      { name: '湛江市', value: 80 },
+      { name: '茂名市', value: 75 },
+      { name: '梅州市', value: 70 },
+      { name: '清远市', value: 65 },
+      { name: '揭阳市', value: 60 },
+      { name: '韶关市', value: 55 },
+      { name: '阳江市', value: 50 },
+      { name: '潮州市', value: 45 },
+      { name: '河源市', value: 40 },
+      { name: '汕尾市', value: 35 },
+      { name: '云浮市', value: 30 }
+    ]
+  }
+
+  return {
+    title: { show: false },
+    tooltip: { trigger: 'item' },
+    visualMap: {
+      type: 'continuous',
+      min: 0,
+      max: 500,
+      text: ['高', '低'],
+      calculable: true,
+      inRange: { color: ['#4575b4', '#74add1', '#abd9e9', '#ffffbf', '#fdae61', '#d73027'] },
+      textStyle: { color: '#fff' },
+      left: 'left', bottom: 'bottom'
+    },
+    series: [{
+      name: '修复数量',
+      type: 'map',
+      map: currentMap.value,
+      roam: true,
+      emphasis: { label: { show: true, color: '#fff' } },
+      data: mapData
+    }]
+  }
+}
     /* ================= */
 
     const getChart3Option = () => ({
@@ -614,12 +646,19 @@ const getChart4Option = () => ({
   ]
 });
 
-const initMap = () => {
-  if (!mapInstance) {
-    mapInstance = echarts.init(mapChart.value)
-    chartInstances.push(mapInstance)
+const initMap = async () => {
+  try {
+    // 先注册地图
+    await registerMap(currentMap.value)
+    
+    if (!mapInstance) {
+      mapInstance = echarts.init(mapChart.value)
+      chartInstances.push(mapInstance)
+    }
+    mapInstance.setOption(getMapOption(), true)
+  } catch (error) {
+    console.error('地图初始化失败:', error)
   }
-  mapInstance.setOption(getMapOption(), true)
 }
 
     onMounted(() => {

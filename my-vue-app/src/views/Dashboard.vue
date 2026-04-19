@@ -69,11 +69,9 @@
 
 <script>
 import { onMounted, onUnmounted, ref, inject, watch } from 'vue';
-import { onMounted, onUnmounted, ref, inject, watch } from 'vue';
-// 👇 新增下面这三行，直接把 JSON 数据引入进来
-import guangxiGeo from '../geo/guangxi.json';
-import fujianGeo from '../geo/fujian.json';
-import guangdongGeo from '../geo/guangdong.json';
+import guangdong from '@/geo/guangdong.json'
+import guangxi from '@/geo/guangxi.json'
+import fujian from '@/geo/fujian.json'
 export default {
   name: 'Dashboard',
   setup() {
@@ -270,21 +268,23 @@ const getSimpleMapOption = () => {
 
         /* ===== 新增 2 ===== */
     // 动态注册地图
-    // 彻底告别 fetch 网络请求，使用本地变量
-    const registerMap = async (adcode) => {
-      if (echarts.getMap(adcode)) return;
-      
-      let geoData;
-      if (adcode === 'guangxi') {
-        geoData = guangxiGeo;
-      } else if (adcode === 'fujian') {
-        geoData = fujianGeo;
-      } else if (adcode === 'guangdong') {
-        geoData = guangdongGeo;
-      }
+    const registerMap = (adcode) => {
+  if (echarts.getMap(adcode)) return;
 
-      echarts.registerMap(adcode, geoData);
-    };
+  const mapData = {
+    'guangdong': guangdong,
+    'guangxi': guangxi,
+    'fujian': fujian
+  };
+
+  const geo = mapData[adcode];
+  if (!geo) {
+    console.error('没有找到地图数据:', adcode);
+    return;
+  }
+
+  echarts.registerMap(adcode, geo);
+};
 
     // 地图配置（动态地图名）
  const getMapOption = () => {

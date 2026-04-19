@@ -74,6 +74,7 @@
               <select v-model="selectedModel" class="model-dropdown">
                 <option value="pt_places2">Places2 (通用场景)</option>
                 <option value="pt_celebahq">CelebA-HQ (人脸)</option>
+                <option value="pt_celebahq">建筑专用</option>
               </select>
             </div>
             <!-- 尺寸选择 -->
@@ -253,7 +254,7 @@ const checkBackendConnection = async () => {
       backendStatus.value = 'connected';
       backendStatusText.value = '已连接';
       backendStatusClass.value = 'connected';
-      console.log('✅ 后端服务连接正常');
+      console.log('后端服务正常提供');
       return true;
     } else {
       throw new Error('后端服务响应异常');
@@ -262,7 +263,7 @@ const checkBackendConnection = async () => {
     backendStatus.value = 'disconnected';
     backendStatusText.value = '未连接';
     backendStatusClass.value = 'disconnected';
-    console.error('❌ 后端服务连接失败:', error.message);
+    console.error('未到后端功能开放时间', error.message);
     if (error.code === 'ECONNABORTED') {
       backendStatusText.value = '连接超时';
     } else if (error.response) {

@@ -261,15 +261,15 @@ const checkBackendConnection = async () => {
     }
   } catch (error) {
     backendStatus.value = 'disconnected';
-    backendStatusText.value = '未连接';
+    backendStatusText.value = '未到后端功能开放时间';
     backendStatusClass.value = 'disconnected';
     console.error('未到后端功能开放时间', error.message);
     if (error.code === 'ECONNABORTED') {
-      backendStatusText.value = '连接超时';
+      backendStatusText.value = '未到后端功能开放时间';
     } else if (error.response) {
-      backendStatusText.value = `服务器错误: ${error.response.status}`;
+      backendStatusText.value = `未到后端功能开放时间`;
     } else if (error.request) {
-      backendStatusText.value = '无法连接到服务器';
+      backendStatusText.value = '未到后端功能开放时间';
     }
     return false;
   }
